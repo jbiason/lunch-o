@@ -45,19 +45,18 @@ User management.
 
         { "status": "ERROR", "error": "username already exists" }
         
-## Single User [/user/{token}/{username}/]
+## Single User [/user/{username}/]
 
 Manage a single user.
 
 + Parameters
-    + token ... The user token.
     + username ... Username used in the creation process.
 
 ### Update information [POST]
 
 + Request (application/json)
 
-        { "full_name": "Full name", "password": "hash" }
+        { "token": "userToken", "full_name": "Full name", "password": "hash" }
         
 + Response 200 (application/json)
 
@@ -74,6 +73,10 @@ Manage a single user.
         
 ### Remove user [DELETE]
 
++ Request (application/json)
+
+        { "token": "userToken" }
+
 + Response 200 (application/json)
 
         { "status": "OK" }
@@ -89,16 +92,17 @@ Manage a single user.
 # Group Places
 Retrieval and management (for admin users) for lunching.
 
-## Places [/places/{token}/]
+## Places [/places/]
 
 Retrieve the list of all places the user has access.
-
-+ Parameters
-    + token ... The user token.
 
 ### Retrieval [GET]
 
 Retrieve the list of places.
+
++ Resquest (application/json)
+
+        { "token": "userToken" }
 
 + Response 200 (application/json)
     
@@ -111,7 +115,7 @@ Add a new place. The user must be admin to do so.
 
 + Request (application/json)
 
-        { "place": "Place Name" }
+        { "token": "userToken", "place": "Place Name" }
         
 + Response 200 (application/json)
 
@@ -126,19 +130,18 @@ Add a new place. The user must be admin to do so.
         { "status": "ERROR", "error": "User is not admin" }
 
 
-## Place management [/places/{token}/{id}/]
+## Place management [/places/{id}/]
 
 Manage a single place. The user must be admin.
 
 + Parameters
-    + token ... The user token.
     + id ... The place id.
 
 ### Edit a place [POST]
 
 + Request (application/json)
 
-        { "name": "Place 3" }
+        { "token": "userToken", "name": "Place 3" }
         
 + Response 200 (application/json)
 
@@ -153,6 +156,10 @@ Manage a single place. The user must be admin.
         { "status": "ERROR", "error": "User is not admin" }
 
 ### Remove a place [DELETE]
+
++ Request (application/json)
+
+        { "token": "userToken" }
 
 + Response 200 (application/json)
 
@@ -169,18 +176,15 @@ Manage a single place. The user must be admin.
 # Group Voting
 User voting.
 
-## Voting [/vote/{token}/]
+## Voting [/vote/]
 
 Make a vote for the day. The day is controlled by the server itself. If a vote has been cast
 but later removed, the server will also
 
-+ Parameters
-    + token ... The user token.
-
 ### Cast a vote [POST]
 + Request (application/json)
 
-        { "choices": [1, 2, 3] }
+        { "token": "userToken", "choices": [1, 2, 3] }
 
 + Response 200 (application/json)
 
@@ -202,6 +206,10 @@ but later removed, the server will also
 
 Remove a vote for the day. Once a vote has been removed, it can't be
 recasted.
+
++ Request (application/json)
+
+        { "token": "userToken" }
 
 + Response 200 (application/json)
 
