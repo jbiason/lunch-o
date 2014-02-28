@@ -1,0 +1,208 @@
+FORMAT: 1A
+HOST: http://pospichil.com/luncho/
+
+# Lunch-o
+Lunching for Groups.
+
+# Group Tokens
+Requesting access tokens.
+
+## Token access [/token/]
+Request an access token.
+
+### Request a token [POST]
++ Request (application/json)
+
+        { "username": "username", "password": "hash" }
+
++ Response 200 (application/json)
+
+        { "status": "OK", "token": "user-token" }
+        
++ Response 403 (application/json)
+
+        { "status": "ERROR", "error": "Invalid password" }
+        
+        
+# Group Users
+
+User management.
+
+## Users [/user/]
+
+### Creation [POST]
+
++ Request (application/json)
+
+        { "username": "username", "full_name": "Full Name", "password": "hash" }
+        
++ Response 200 (application/json)
+
+        { "status": "OK" }
+        
++ Response 409 (application/json)
+
+        { "status": "ERROR", "error": "username already exists" }
+        
+## Single User [/user/{token}/{username}/]
+
+Manage a single user.
+
++ Parameters
+    + token ... The user token.
+    + username ... Username used in the creation process.
+
+### Update information [POST]
+
++ Request (application/json)
+
+        { "full_name": "Full name", "password": "hash" }
+        
++ Response 200 (application/json)
+
+        { "status": "OK" }
+
++ Response 401 (application/json)
+
+        { "status": "ERROR", "error": "Invalid token" }
+        
++ Response 403 (application/json)
+
+        { "status": "ERROR", "error": "User is not admin or not the same user" }
+        
+        
+### Remove user [DELETE]
+
++ Response 200 (application/json)
+
+        { "status": "OK" }
+
++ Response 401 (application/json)
+
+        { "status": "ERROR", "error": "Invalid token" }
+        
++ Response 403 (application/json)
+
+        { "status": "ERROR", "error": "User is not admin or not the same user" }
+
+# Group Places
+Retrieval and management (for admin users) for lunching.
+
+## Places [/places/{token}/]
+
+Retrieve the list of all places the user has access.
+
++ Parameters
+    + token ... The user token.
+
+### Retrieval [GET]
+
+Retrieve the list of places.
+
++ Response 200 (application/json)
+    
+        { "status": "OK", "places": [{"name": "Place 1", "id": 1}
+                                     {"name": "Place 2", "id": 2}}
+
+### Add a new place [PUT]
+
+Add a new place. The user must be admin to do so.
+
++ Request (application/json)
+
+        { "place": "Place Name" }
+        
++ Response 200 (application/json)
+
+        { "status": "OK", "id": 3 }
+        
++ Response 401 (application/json)
+
+        { "status": "ERROR", "error": "Invalid token" }
+        
++ Response 403 (application/json)
+
+        { "status": "ERROR", "error": "User is not admin" }
+
+
+## Place management [/places/{token}/{id}/]
+
+Manage a single place. The user must be admin.
+
++ Parameters
+    + token ... The user token.
+    + id ... The place id.
+
+### Edit a place [POST]
+
++ Request (application/json)
+
+        { "name": "Place 3" }
+        
++ Response 200 (application/json)
+
+        { "status": "OK" }
+        
++ Response 401 (application/json)
+
+        { "status": "ERROR", "error": "Invalid token" }
+        
++ Response 403 (application/json)
+
+        { "status": "ERROR", "error": "User is not admin" }
+
+### Remove a place [DELETE]
+
++ Response 200 (application/json)
+
+        { "status": "OK" }
+        
++ Response 401 (application/json)
+
+        { "status": "ERROR", "error": "Invalid token" }
+        
++ Response 403 (application/json)
+
+        { "status": "ERROR", "error": "User is not admin" }
+
+# Group Voting
+User voting.
+
+## Voting [/vote/{token}/]
+
+Make a vote for the day. The day is controlled by the server itself. If a vote has been cast
+but later removed, the server will also
+
++ Parameters
+    + token ... The user token.
+
+### Cast a vote [POST]
++ Request (application/json)
+
+        { "choices": [1, 2, 3] }
+
++ Response 200 (application/json)
+
+        { "status": "OK" }
+        
++ Response 401 (application/json)
+
+        { "status": "ERROR", "error": "Invalid token" }
+        
++ Response 403 (application/json)
+
+        { "status": "ERROR", "error": "Casted vote was removed" }
+        
++ Response 409 (application/json)
+
+        { "status": "ERROR", "error": "Vote for place %d appeared more than once" }
+
+### Remove a vote [DELETE]
+
+Remove a vote for the day. Once a vote has been removed, it can't be
+recasted.
+
++ Response 200 (application/json)
+
+        { "status": "OK" }
+        
