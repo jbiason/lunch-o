@@ -18,7 +18,7 @@ identify the user in further requests.
 
 + Request (application/json)
 
-		{ "username": "username", "password": "hash" }
+        { "username": "username", "password": "hash" }
             
 + Response 200 (application/json)
 
@@ -145,7 +145,7 @@ it.
 
 + Response 412 (application/json)
 
-		{ "status": "ERROR", "error": "Account not verified" }
+        { "status": "ERROR", "error": "Account not verified" }
 
 
 ## Place management [/places/{id}/]
@@ -179,7 +179,7 @@ ownership to another user, immediatelly.
 
 + Response 409 (application/json)
 
-		{ "status": "ERROR", "error": "New maintaner does not exist" }
+        { "status": "ERROR", "error": "New maintaner does not exist" }
 
 ### Remove a place [DELETE]
 
@@ -218,12 +218,12 @@ Return groups in the system. Only groups in which the user belongs will be retur
 
 + Request (application/json)
 
-		{ "token": "userToken" }
+        { "token": "userToken" }
 
 + Response 200 (application/json)
 
-		{ "status": "OK", "groups": [{"id": 1, "name": "Group 1"},
-									 {"id": 2, "name": "Group 2"}] }
+        { "status": "OK", "groups": [{"id": 1, "name": "Group 1"},
+                                     {"id": 2, "name": "Group 2"}] }
 
 + Response 400 (application/json)
 
@@ -235,11 +235,11 @@ The user will become the maintainer of the group once it is created.
 
 + Request (application/json)
 
-		{ "token": "userToken", "name": "Group name" }
+        { "token": "userToken", "name": "Group name" }
 
 + Response 200 (application/json)
 
-		{ "status": "OK", "id": 3 }
+        { "status": "OK", "id": 3 }
 
 + Response 400 (application/json)
 
@@ -247,7 +247,7 @@ The user will become the maintainer of the group once it is created.
 
 + Response 412 (application/json)
 
-		{ "status": "ERROR", "error": "Account not verified" }
+        { "status": "ERROR", "error": "Account not verified" }
 
 ## Group management [/group/{id}/]
 
@@ -256,17 +256,17 @@ only the required fields are necessary. Passing "maintainer" will change the
 maintenance ownership to another user, immediatelly.
 
 + Parameter
-	+ id ... The group ID.
+    + id ... The group ID.
 
 ### Update information [POST]
 
 + Request (application/json)
 
-		{ "token": "userToken", "name": "Group name", "maintainer": "username" }
+        { "token": "userToken", "name": "Group name", "maintainer": "username" }
 
 + Response 200 (application/json)
 
-		{ "status": "OK" }
+        { "status": "OK" }
 
 + Response 400 (application/json)
 
@@ -274,27 +274,39 @@ maintenance ownership to another user, immediatelly.
 
 + Response 401 (application/json)
 
-		{ "status": "ERROR", "error": "User is not admin" }
+        { "status": "ERROR", "error": "User is not admin" }
 
 + Response 409 (application/json)
 
-		{ "status": "ERROR", "error": "New maintaner does not exist" }
+        { "status": "ERROR", "error": "New maintaner does not exist" }
 
 ### Adding members [PUT]
 
 + Request (application/json)
 
-		{ "token": "userToken", "usernames": ["username"] }
+        { "token": "userToken", "usernames": ["username"] }
+
++ Response 200 (application/json)
+
+        { "status": "OK" }
+
++ Response 400 (application/json)
+
+        { "status": "ERROR", "error": "Invalid token" }
+
++ Response 401 (application/json)
+
+        { "status": "ERROR", "error": "User is not admin" }
 
 ### Remove group [DELETE]
 
 + Request (application/json)
 
-		{ "token": "userToken", "name": "Group name", "maintainer": "username" }
+        { "token": "userToken", "name": "Group name", "maintainer": "username" }
 
 + Response 200 (application/json)
 
-		{ "status": "OK" }
+        { "status": "OK" }
 
 + Response 400 (application/json)
 
@@ -302,25 +314,26 @@ maintenance ownership to another user, immediatelly.
 
 + Response 401 (application/json)
 
-		{ "status": "ERROR", "error": "User is not admin" }
+        { "status": "ERROR", "error": "User is not admin" }
 
-## Users in the group [/group/{id}/username/]
+## Users in the group [/group/{id}/users/{username}/]
 
 Manage users in the group. The user (token owner) must be the maintainer of the
 group.
 
-+ Parameter
-	+ id ... The group ID.
++ Parameters
+    + id ... The group ID.
+    + username ... User username.
 
 ### Remove user [DELETE]
 
 + Request (application/json)
 
-		{ "token": "userToken" }
+        { "token": "userToken" }
 
 + Response 200 (application/json)
 
-		{ "status": "OK" }
+        { "status": "OK" }
 
 + Response 400 (application/json)
 
@@ -328,11 +341,11 @@ group.
 
 + Response 401 (application/json)
 
-		{ "status": "ERROR", "error": "User is not admin" }
+        { "status": "ERROR", "error": "User is not admin" }
 
 + Response 412 (application/json)
 
-		{ "status": "ERROR", "error": "User is not a member of this group" }
+        { "status": "ERROR", "error": "User is not a member of this group" }
 
 # Group Voting
 
@@ -344,8 +357,8 @@ Make a vote for the day (controlled by the server). The user must selected in
 which group they are voting, which will block voting in any other groups, unless
 the vote is removed; voting in the same group again will only update the vote.
 
-+ Parameter
-	+ groupId ... The group in which the user wants to vote
++ Parameters
+    + groupId ... The group in which the user wants to vote
 
 ### Cast a vote [POST]
 
@@ -367,7 +380,7 @@ the vote is removed; voting in the same group again will only update the vote.
 
 + Response 403 (application/json)
 
-		{ "status": "ERROR", "error": "User does not belong to this group" }
+        { "status": "ERROR", "error": "User does not belong to this group" }
         
 + Response 409 (application/json)
 
@@ -375,7 +388,7 @@ the vote is removed; voting in the same group again will only update the vote.
 
 + Response 410 (application/json)
 
-		{ "status": "ERROR", "error": "User already voted for a group today" }
+        { "status": "ERROR", "error": "User already voted for a group today" }
 
 ### Remove a vote [DELETE]
 
@@ -392,4 +405,4 @@ recasted.
         
 + Response 406 (application/json)
 
-		{ "status": "ERROR", "error": "User didn't vote in this group today" }
+        { "status": "ERROR", "error": "User didn't vote in this group today" }
