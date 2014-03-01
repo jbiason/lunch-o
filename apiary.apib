@@ -27,6 +27,10 @@ identify the user in further requests.
 + Response 401 (application/json)
 
         { "status": "ERROR", "error": "Invalid password" }
+
++ Response 404 (application/json)
+
+        { "status": "ERROR", "error": "User does not exist" }
         
         
 ## Users [/user/]
@@ -78,8 +82,7 @@ change will require only the "token" and "password" fields.
 + Response 401 (application/json)
 
         { "status": "ERROR", "error": "User is not admin or not the same user" }
-        
-        
+
 ### Remove user [DELETE]
 
 User removal is only allowed to the user themselves or by a system admin.
@@ -102,11 +105,13 @@ User removal is only allowed to the user themselves or by a system admin.
 
 # Group Places
 
-Retrieval and management (for admin users) for lunching.
+Places to have lunch.
 
 ## Places [/places/]
 
-Retrieve the list of all places the user has access.
+Retrieve the list of all places the user has access. This is directly tied
+to the Gropu management and will return all the places the user have access
+in their groups.
 
 ### Retrieval [GET]
 
@@ -148,12 +153,12 @@ it.
         { "status": "ERROR", "error": "Account not verified" }
 
 
-## Place management [/places/{id}/]
+## Place management [/places/{placeId}/]
 
 Manage a single place. The user must be the maintainer of the place.
 
 + Parameters
-    + id ... The place id.
+    + placeId ... The place id.
 
 ### Edit a place [POST]
 
@@ -177,6 +182,10 @@ ownership to another user, immediatelly.
 
         { "status": "ERROR", "error": "User is not admin" }
 
++ Response 404 (application/json)
+
+        { "status": "ERROR", "error": "Place not found" }
+
 + Response 409 (application/json)
 
         { "status": "ERROR", "error": "New maintaner does not exist" }
@@ -199,10 +208,14 @@ ownership to another user, immediatelly.
 
         { "status": "ERROR", "error": "User is not admin" }
 
++ Response 404 (application/json)
+
+        { "status": "ERROR", "error": "Place not found" }
+
 # Group Groups
 
 Groups are used to combine a group of users and their favorite places. A location 
-will be considered "selected" when all users in that group have vote (or
+will be considered "selected" when all users in that group have voted (or
 abstain in voting).
 
 ## Groups [/groups/]
@@ -249,14 +262,14 @@ The user will become the maintainer of the group once it is created.
 
         { "status": "ERROR", "error": "Account not verified" }
 
-## Group management [/group/{id}/]
+## Group management [/group/{groupId}/]
 
 Only the maintainer of the group can change the information for the group. As usual,
 only the required fields are necessary. Passing "maintainer" will change the
 maintenance ownership to another user, immediatelly.
 
 + Parameter
-    + id ... The group ID.
+    + groupId ... The group ID.
 
 ### Update information [POST]
 
@@ -275,6 +288,10 @@ maintenance ownership to another user, immediatelly.
 + Response 401 (application/json)
 
         { "status": "ERROR", "error": "User is not admin" }
+
++ Response 404 (application/json)
+
+        { "status": "ERROR", "error": "Group not found" }
 
 + Response 409 (application/json)
 
@@ -298,11 +315,15 @@ maintenance ownership to another user, immediatelly.
 
         { "status": "ERROR", "error": "User is not admin" }
 
++ Response 404 (application/json)
+
+        { "status": "ERROR", "error": "Group not found" }
+
 ### Remove group [DELETE]
 
 + Request (application/json)
 
-        { "token": "userToken", "name": "Group name", "maintainer": "username" }
+        { "token": "userToken" }
 
 + Response 200 (application/json)
 
@@ -316,13 +337,17 @@ maintenance ownership to another user, immediatelly.
 
         { "status": "ERROR", "error": "User is not admin" }
 
-## Users in the group [/group/{id}/users/{username}/]
++ Response 404 (application/json)
+
+        { "status": "ERROR", "error": "Group not found" }
+
+## Users in the group [/group/{groupId}/users/{username}/]
 
 Manage users in the group. The user (token owner) must be the maintainer of the
 group.
 
 + Parameters
-    + id ... The group ID.
+    + groupId ... The group ID.
     + username ... User username.
 
 ### Remove user [DELETE]
@@ -343,15 +368,101 @@ group.
 
         { "status": "ERROR", "error": "User is not admin" }
 
++ Response 404 (application/json)
+
+        { "status": "ERROR", "error": "Group not found" }
+
 + Response 412 (application/json)
 
         { "status": "ERROR", "error": "User is not a member of this group" }
+
+
+## Places in the group [/group/{groupId}/places/]
+
+The places the group has already selected as their prefered/nearby places
+for lunching.
+
++ Parameters
+    + groupId ... The group ID.
+
+### Retrieve the places for the group [GET]
+
++ Request (application/json)
+
+        { "token": "userToken" }
+
++ Response 200 (application/json)
+
+        { "status": "OK", "places": [ {"id": 1, "name": "Place 1",
+                                       "id": 2, "name": "Place 2"} ] }
+
++ Response 400 (application/json)
+
+        { "status": "ERROR", "error": "Invalid token" }
+
++ Response 404 (application/json)
+
+        { "status": "ERROR", "error": "Group not found" }
+
++ Response 412 (application/json)
+
+        { "status": "ERROR", "error": "User is not a member of this group" }
+
+### Adding new places to a group [PUT]
+
++ Request (application/json)
+
+        { "token": "userToken", "places": [1] }
+
++ Response 200 (application/json)
+
+        { "status": "OK" }
+
++ Response 400 (application/json)
+
+        { "status": "ERROR", "error": "Invalid token" }
+
++ Response 404 (application/json)
+
+        { "status": "ERROR", "error": "Group not found" }
+
++ Response 409 (application/json)
+
+        { "status": "ERROR", "error": "Place does not exist" }
+
++ Response 412 (application/json)
+
+        { "status": "ERROR", "error": "User is not a member of this group" }
+
+## Managing places in the group [/group/{groupId}/places/{placeId}]
+
+### Removing a place
+
++ Request (application/json)
+
+        { "token": "userToken" }
+
++ Response 200 (application/json)
+
+        { "status": "OK" }
+
++ Response 400 (application/json)
+
+        { "status": "ERROR", "error": "Invalid token" }
+
++ Response 401 (application/json)
+
+        { "status": "ERROR", "error": "User is not admin" }
+
++ Response 404 (application/json)
+
+        { "status": "ERROR", "error": "Group or place not found" }
 
 # Group Voting
 
 User voting.
 
-## Voting [/vote/{groupId}]
+## Voting [/vote/{groupId}/]
 
 Make a vote for the day (controlled by the server). The user must selected in
 which group they are voting, which will block voting in any other groups, unless
@@ -403,6 +514,6 @@ recasted.
 
         { "status": "OK" }
         
-+ Response 406 (application/json)
++ Response 404 (application/json)
 
         { "status": "ERROR", "error": "User didn't vote in this group today" }
