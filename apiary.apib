@@ -4,35 +4,39 @@ HOST: http://pospichil.com/luncho/
 # Lunch-o
 Lunching for Groups.
 
-# Group Tokens
-Requesting access tokens.
+# Group Users
+
+User and token management.
 
 ## Token access [/token/]
-Request an access token.
+
+Request an access token. Almost all requests from here will require that a
+token is provided; this API will return the required token, which will
+identify the user in further requests.
 
 ### Request a token [POST]
+
 + Request (application/json)
 
-    + Body
-
-            { "username": "username", "password": "hash" }
+		{ "username": "username", "password": "hash" }
             
 + Response 200 (application/json)
 
         { "status": "OK", "token": "user-token" }
-        
-+ Response 403 (application/json)
+
++ Response 401 (application/json)
 
         { "status": "ERROR", "error": "Invalid password" }
         
         
-# Group Users
-
-User management.
-
 ## Users [/user/]
 
-### Creation [POST]
+APIs to add, update and remove users.
+
+### Creation [PUT]
+
+After a user created an account, it needs to be verified. Unverified users are
+forbidden to create new groups. They can still vote, though.
 
 + Request (application/json)
 
@@ -55,6 +59,10 @@ Manage a single user.
 
 ### Update information [POST]
 
+Partial requests are valid (e.g., a request with a single "full\_name" -- and
+"token", obviously -- will update only the full\_name for that user; a password
+change will require only the "token" and "password" fields.
+
 + Request (application/json)
 
         { "token": "userToken", "full_name": "Full name", "password": "hash" }
@@ -63,16 +71,18 @@ Manage a single user.
 
         { "status": "OK" }
 
-+ Response 401 (application/json)
++ Response 400 (application/json)
 
         { "status": "ERROR", "error": "Invalid token" }
         
-+ Response 403 (application/json)
++ Response 401 (application/json)
 
         { "status": "ERROR", "error": "User is not admin or not the same user" }
         
         
 ### Remove user [DELETE]
+
+User removal is only allowed to the user themselves or by a system admin.
 
 + Request (application/json)
 
@@ -82,15 +92,16 @@ Manage a single user.
 
         { "status": "OK" }
 
-+ Response 401 (application/json)
++ Response 400 (application/json)
 
         { "status": "ERROR", "error": "Invalid token" }
         
-+ Response 403 (application/json)
++ Response 401 (application/json)
 
         { "status": "ERROR", "error": "User is not admin or not the same user" }
 
 # Group Places
+
 Retrieval and management (for admin users) for lunching.
 
 ## Places [/places/]
@@ -99,7 +110,7 @@ Retrieve the list of all places the user has access.
 
 ### Retrieval [GET]
 
-Retrieve the list of places.
+Return the list of all places in the system.
 
 + Resquest (application/json)
 
@@ -112,7 +123,9 @@ Retrieve the list of places.
 
 ### Add a new place [PUT]
 
-Add a new place. The user must be admin to do so.
+Add a new place. Once the place is created, the user becomes the "maintainer"
+of the place and only this user will be allowed to change any information about
+it.
 
 + Request (application/json)
 
@@ -122,39 +135,51 @@ Add a new place. The user must be admin to do so.
 
         { "status": "OK", "id": 3 }
         
-+ Response 401 (application/json)
++ Response 400 (application/json)
 
         { "status": "ERROR", "error": "Invalid token" }
         
-+ Response 403 (application/json)
++ Response 401 (application/json)
 
         { "status": "ERROR", "error": "User is not admin" }
+
++ Response 412 (application/json)
+
+		{ "status": "ERROR", "error": "Account not verified" }
 
 
 ## Place management [/places/{id}/]
 
-Manage a single place. The user must be admin.
+Manage a single place. The user must be the maintainer of the place.
 
 + Parameters
     + id ... The place id.
 
 ### Edit a place [POST]
 
+Editing a place works like user information: only the fields that will be
+changed are required. Passing the "maintainer" will tranfer the maintenance
+ownership to another user, immediatelly.
+
 + Request (application/json)
 
-        { "token": "userToken", "name": "Place 3" }
+        { "token": "userToken", "name": "Place 3", "maintainer": "username"}
         
 + Response 200 (application/json)
 
         { "status": "OK" }
         
-+ Response 401 (application/json)
++ Response 400 (application/json)
 
         { "status": "ERROR", "error": "Invalid token" }
         
-+ Response 403 (application/json)
++ Response 401 (application/json)
 
         { "status": "ERROR", "error": "User is not admin" }
+
++ Response 409 (application/json)
+
+		{ "status": "ERROR", "error": "New maintaner does not exist" }
 
 ### Remove a place [DELETE]
 
@@ -166,23 +191,164 @@ Manage a single place. The user must be admin.
 
         { "status": "OK" }
         
-+ Response 401 (application/json)
++ Response 400 (application/json)
 
         { "status": "ERROR", "error": "Invalid token" }
         
-+ Response 403 (application/json)
++ Response 401 (application/json)
 
         { "status": "ERROR", "error": "User is not admin" }
 
+# Group Groups
+
+Groups are used to combine a group of users and their favorite places. A location 
+will be considered "selected" when all users in that group have vote (or
+abstain in voting).
+
+## Groups [/groups/]
+
+Group management. Only users with verified accounts can create new groups. Once
+a group is created, the user becomes the "maintainer" of the group and only this
+user can edit group information, remove the group, add and remove people from the
+group.
+
+### Getting groups [GET]
+
+Return groups in the system. Only groups in which the user belongs will be returned.
+
++ Request (application/json)
+
+		{ "token": "userToken" }
+
++ Response 200 (application/json)
+
+		{ "status": "OK", "groups": [{"id": 1, "name": "Group 1"},
+									 {"id": 2, "name": "Group 2"}] }
+
++ Response 400 (application/json)
+
+        { "status": "ERROR", "error": "Invalid token" }
+
+### Create a group [PUT]
+
+The user will become the maintainer of the group once it is created.
+
++ Request (application/json)
+
+		{ "token": "userToken", "name": "Group name" }
+
++ Response 200 (application/json)
+
+		{ "status": "OK", "id": 3 }
+
++ Response 400 (application/json)
+
+        { "status": "ERROR", "error": "Invalid token" }
+
++ Response 412 (application/json)
+
+		{ "status": "ERROR", "error": "Account not verified" }
+
+## Group management [/group/{id}/]
+
+Only the maintainer of the group can change the information for the group. As usual,
+only the required fields are necessary. Passing "maintainer" will change the
+maintenance ownership to another user, immediatelly.
+
++ Parameter
+	+ id ... The group ID.
+
+### Update information [POST]
+
++ Request (application/json)
+
+		{ "token": "userToken", "name": "Group name", "maintainer": "username" }
+
++ Response 200 (application/json)
+
+		{ "status": "OK" }
+
++ Response 400 (application/json)
+
+        { "status": "ERROR", "error": "Invalid token" }
+
++ Response 401 (application/json)
+
+		{ "status": "ERROR", "error": "User is not admin" }
+
++ Response 409 (application/json)
+
+		{ "status": "ERROR", "error": "New maintaner does not exist" }
+
+### Adding members [PUT]
+
++ Request (application/json)
+
+		{ "token": "userToken", "usernames": ["username"] }
+
+### Remove group [DELETE]
+
++ Request (application/json)
+
+		{ "token": "userToken", "name": "Group name", "maintainer": "username" }
+
++ Response 200 (application/json)
+
+		{ "status": "OK" }
+
++ Response 400 (application/json)
+
+        { "status": "ERROR", "error": "Invalid token" }
+
++ Response 401 (application/json)
+
+		{ "status": "ERROR", "error": "User is not admin" }
+
+## Users in the group [/group/{id}/username/]
+
+Manage users in the group. The user (token owner) must be the maintainer of the
+group.
+
++ Parameter
+	+ id ... The group ID.
+
+### Remove user [DELETE]
+
++ Request (application/json)
+
+		{ "token": "userToken" }
+
++ Response 200 (application/json)
+
+		{ "status": "OK" }
+
++ Response 400 (application/json)
+
+        { "status": "ERROR", "error": "Invalid token" }
+
++ Response 401 (application/json)
+
+		{ "status": "ERROR", "error": "User is not admin" }
+
++ Response 412 (application/json)
+
+		{ "status": "ERROR", "error": "User is not a member of this group" }
+
 # Group Voting
+
 User voting.
 
-## Voting [/vote/]
+## Voting [/vote/{groupId}]
 
-Make a vote for the day. The day is controlled by the server itself. If a vote has been cast
-but later removed, the server will also
+Make a vote for the day (controlled by the server). The user must selected in
+which group they are voting, which will block voting in any other groups, unless
+the vote is removed; voting in the same group again will only update the vote.
+
++ Parameter
+	+ groupId ... The group in which the user wants to vote
 
 ### Cast a vote [POST]
+
 + Request (application/json)
 
         { "token": "userToken", "choices": [1, 2, 3] }
@@ -191,17 +357,25 @@ but later removed, the server will also
 
         { "status": "OK" }
         
-+ Response 401 (application/json)
++ Response 400 (application/json)
 
         { "status": "ERROR", "error": "Invalid token" }
         
-+ Response 403 (application/json)
++ Response 401 (application/json)
 
         { "status": "ERROR", "error": "Casted vote was removed" }
+
++ Response 403 (application/json)
+
+		{ "status": "ERROR", "error": "User does not belong to this group" }
         
 + Response 409 (application/json)
 
         { "status": "ERROR", "error": "Vote for place %d appeared more than once" }
+
++ Response 410 (application/json)
+
+		{ "status": "ERROR", "error": "User already voted for a group today" }
 
 ### Remove a vote [DELETE]
 
@@ -216,3 +390,6 @@ recasted.
 
         { "status": "OK" }
         
++ Response 406 (application/json)
+
+		{ "status": "ERROR", "error": "User didn't vote in this group today" }
