@@ -3,7 +3,7 @@ var http = require('http');
 var path = require('path');
 var favicon = require('static-favicon');
 var logger = require('morgan');
-var cookieParser = require('cookie-parser');
+// var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var routes = require('./routes');
@@ -15,7 +15,7 @@ app.use(favicon());
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
-app.use(cookieParser());
+// app.use(cookieParser());
 app.use(app.router);
 
 app.get('/', routes.index);
@@ -51,3 +51,5 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
+
+app.listen(3000);
