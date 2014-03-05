@@ -3,11 +3,12 @@ var http = require('http');
 var path = require('path');
 var favicon = require('static-favicon');
 var logger = require('morgan');
-// var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var routes = require('./routes');
 var users = require('./routes/user');
+
+var db = require('./models');
 
 var app = express();
 
@@ -17,9 +18,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 // app.use(cookieParser());
 app.use(app.router);
-
-app.get('/', routes.index);
-app.get('/users', users.list);
 
 /// catch 404 and forwarding to error handler
 app.use(function(req, res, next) {
@@ -52,4 +50,21 @@ app.use(function(err, req, res, next) {
 
 module.exports = app;
 
-app.listen(3000);
+// routes
+app.get('/', routes.index);
+
+// database and start up
+db
+  .sequelize
+  .sync({ force: true })
+  .complete(function (err) {
+    if (err) {
+      throw err;
+    }
+
+    port = app.get('port') || 3000;
+
+    http.createServer(app).listen(port, function () {
+      console.log('Express server listening on port ' + port);
+    });
+  });
