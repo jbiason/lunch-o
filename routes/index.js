@@ -1,4 +1,4 @@
 /* GET home page. */
 exports.index = function(req, res){
-  res.render('index', { title: 'Express' });
+  res.send({"status": "ERROR", "error": "No index method, go away"});
 };
