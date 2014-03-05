@@ -6,3 +6,7 @@ lib-cov
 *.out
 *.pid
 *.gz
+*.pyc
+
+.venv
+.ropeproject
