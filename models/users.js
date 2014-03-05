@@ -6,9 +6,12 @@ module.exports = function(sequelize, DataTypes) {
     issuedDate: DataTypes.DATE  // since tokens are one way only, we need to make sure the token is valid for today
   }, {
     classMethods: {
-      userToken: function (reqToken) {
-        User.find({ token: reqToken }, success: function (user) {
-          // validade issuedDate
+      userToken: function (reqToken, next) {
+        User.find({ token: reqToken }).success(user) {
+          // check if the token is valid for today
+          if (next) {
+            next (user);
+          }
         }
       }
     }
