@@ -19,6 +19,8 @@ def show_routes():
     for rule in current_app.url_map.iter_rules():
         endpoint = rule.endpoint
         if endpoint == 'static':
+            # the server does not have a static path, but  Flask automatically
+            # registers it. so we just ignore it.
             continue
 
         path = str(rule)
