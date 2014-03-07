@@ -12,7 +12,8 @@ from flask import current_app
 
 index = Blueprint('index', __name__)
 
-@index.route('')
+
+@index.route('', methods=['GET'])
 def show_routes():
     """List the current API"""
     routes = []
@@ -24,7 +25,7 @@ def show_routes():
             continue
 
         path = str(rule)
-        methods = rule.methods
+        # methods = rule.methods
         doc = current_app.view_functions[endpoint].__doc__
 
         routes.append([
