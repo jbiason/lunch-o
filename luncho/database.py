@@ -11,6 +11,7 @@ from pony.orm import Required
 
 db = Database("sqlite", "tagallery.db", create_db=True)
 
+
 class User(db.Entity):
     """Users."""
     username = PrimaryKey(unicode)
@@ -20,5 +21,6 @@ class User(db.Entity):
                                 # 2. This forces the user to have a single
                                 #    login everywhere, per day.
     issue_date = Optional(datetime.datetime)
+    validated = Required(bool, default=False)
 
 db.generate_mapping(create_tables=True)
