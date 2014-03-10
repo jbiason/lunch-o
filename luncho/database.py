@@ -3,18 +3,21 @@
 
 import datetime
 
+from flask import current_app
+
 from pony.orm import Database
 from pony.orm import PrimaryKey
 from pony.orm import Optional
 from pony.orm import Required
 # from pony.orm import Set
 
-db = Database("sqlite", "tagallery.db", create_db=True)
+db = Database("sqlite", current_app.config['SQLITE_FILENAME'], create_db=True)
 
 
 class User(db.Entity):
     """Users."""
     username = PrimaryKey(unicode)
+    fullname = Required(unicode)
     passhash = Required(unicode)
     token = Optional(unicode)   # 1. if the user never logged in, they will
                                 #    not have a token.

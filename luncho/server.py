@@ -21,8 +21,10 @@ app.config.from_envvar('LUCNHO_CONFIG', True)
 #  Blueprints
 # ----------------------------------------------------------------------
 from blueprints.index import index
+from blueprints.users import users
 
 app.register_blueprint(index, url_prefix='/')
+app.register_blueprint(users, url_prefix='/user/')
 
 # ----------------------------------------------------------------------
 #  Database
