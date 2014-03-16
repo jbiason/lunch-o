@@ -28,6 +28,7 @@ class TestUsers(unittest.TestCase):
         rv = self.app.put('/user/',
                           data=json.dumps(request),
                           content_type='application/json')
+        self.assertEqual(rv.status_code, 200)
         self.assertEqual(json.loads(rv.data), {'status': 'OK'})
 
 if __name__ == '__main__':
