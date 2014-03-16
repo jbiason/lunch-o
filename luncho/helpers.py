@@ -39,3 +39,22 @@ class ForceJSON(object):
 
             return func(*args, **kwargs)
         return check_json
+
+
+def JSONError(status, message, **kwargs):
+    """Generate a JSON error message with the error and extra fields.
+
+    :param status: the HTTP status code for the error
+    :type status: int
+    :param message: The message in the error
+    :type message: str
+    :param kwargs: Extra fields to be added in the response. *Note*: `status`
+                   and `message` should **NOT** be used.
+    :type kwargs: kwargs
+
+    :return: A response with the JSON and the status code."""
+    resp = jsonify(status='ERROR',
+                   message=message,
+                   **kwargs)
+    resp.status_code = status
+    return resp

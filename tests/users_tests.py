@@ -6,6 +6,8 @@ import json
 
 from luncho import server
 
+from luncho.server import User
+
 
 class TestUsers(unittest.TestCase):
     """Test users request."""
@@ -32,6 +34,9 @@ class TestUsers(unittest.TestCase):
 
         self.assertEqual(rv.status_code, 200)
         self.assertEqual(json.loads(rv.data), {'status': 'OK'})
+
+        # db check
+        self.assertIsNotNone(User.query.filter_by(username='username').first())
 
     def test_duplicate_user(self):
         """Check the status for trying to create a user that it is already

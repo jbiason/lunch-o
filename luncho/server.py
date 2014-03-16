@@ -3,6 +3,9 @@
 
 import sys
 import logging
+import json
+import hmac
+import datetime
 
 from flask import Flask
 
@@ -37,6 +40,7 @@ class User(db.Model):
     token = db.Column(db.String)
     issued_date = db.Column(db.Date)
     validated = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, nullable=False)
 
     def __init__(self, username, fullname, passhash, token=None,
                  issued_date=None, validated=False):
@@ -46,14 +50,39 @@ class User(db.Model):
         self.token = token
         self.issued_date = issued_date
         self.validated = validated
+        self.created_at = datetime.datetime.now()
+
+    def get_token(self):
+        """Generate a user token or return the current one for the day."""
+        if self.token and self.issued_date == datetime.date.today():
+            return self.token
+
+        # create a token for the day
+        self.token = self._token()
+        self.issued_date = datetime.date.today()
+        db.session.commit()
+        return self._token()
+
+    def valid_token(self, token):
+        """Check if the user token is valid."""
+        return (self.token == self._token())
+
+    def _token(self):
+        """Generate a token with the user information and the current date."""
+        phrase = json.dumps({'username': self.username,
+                             'issued_date': datetime.date.today().isoformat()})
+        return hmac.new(self.created_at.isoformat(), phrase).hexdigest()
+
 
 # ----------------------------------------------------------------------
 #  Blueprints
 # ----------------------------------------------------------------------
 from blueprints.index import index
 from blueprints.users import users
+from blueprints.token import token
 
 app.register_blueprint(index, url_prefix='/')
+app.register_blueprint(token, url_prefix='/token/')
 app.register_blueprint(users, url_prefix='/user/')
 
 
