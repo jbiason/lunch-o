@@ -9,6 +9,11 @@ from luncho.server import app
 
 manager = Manager(app)
 
+
+@manager.command
+def create_db():
+	"""Create the database."""
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     manager.run()

@@ -18,8 +18,10 @@ class ForceJSON(object):
         def check_json(*args, **kwargs):
             json = request.get_json(force=True, silent=True)
             if not json:
-                return jsonify(status='ERROR',
-                               error='Request MUST be in JSON format'), 400
+                resp = jsonify(status='ERROR',
+                               error='Request MUST be in JSON format')
+                resp.status_code = 400
+                return resp
 
             # now we have the JSON, let's check if all the fields are here.
             missing = []
@@ -30,8 +32,10 @@ class ForceJSON(object):
             if missing:
                 fields = ', '.join(missing)
                 error = 'Missing fields: {fields}'.format(fields=fields)
-                return jsonify(status='ERROR',
+                resp = jsonify(status='ERROR',
                                error=error)
+                resp.status_code = 400
+                return resp
 
             return func(*args, **kwargs)
         return check_json
