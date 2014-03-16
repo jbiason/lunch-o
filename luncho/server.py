@@ -32,16 +32,20 @@ db = SQLAlchemy(app)
 
 class User(db.Model):
     username = db.Column(db.String, primary_key=True)
-    full_name = db.Column(db.String, nullable=False)
+    fullname = db.Column(db.String, nullable=False)
     passhash = db.Column(db.String, nullable=False)
     token = db.Column(db.String)
     issued_date = db.Column(db.Date)
     validated = db.Column(db.Boolean, default=False)
 
-    def __init__(self, username, full_name, passhash):
+    def __init__(self, username, fullname, passhash, token=None,
+                 issued_date=None, validated=False):
         self.username = username
-        self.full_name = full_name
+        self.fullname = fullname
         self.passhash = passhash
+        self.token = token
+        self.issued_date = issued_date
+        self.validated = validated
 
 # ----------------------------------------------------------------------
 #  Blueprints

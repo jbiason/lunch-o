@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 
-import os
-import tempfile
 import unittest
 import json
 
@@ -13,12 +11,11 @@ class TestUsers(unittest.TestCase):
     """Test users request."""
 
     def setUp(self):
-        (_, name) = tempfile.mkstemp()
-
-        server.app.config['SQLITE_FILENAME'] = name
+        # leave the database blank to make it in memory
+        server.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://'
         server.app.config['TESTING'] = True
 
-        print server.app.config['SQLITE_FILENAME']
+        print server.app.config['SQLALCHEMY_DATABASE_URI']
         self.app = server.app.test_client()
 
     # def tearDown(self):
