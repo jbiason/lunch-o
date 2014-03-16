@@ -2,7 +2,6 @@
 # -*- encoding: utf-8 -*-
 
 import sys
-import datetime
 import logging
 
 from flask import Flask
@@ -12,7 +11,8 @@ from flask import Flask
 #  Config
 # ----------------------------------------------------------------------
 class Settings(object):
-    SQLITE_FILENAME = './luncho.db3'
+    SQLALCHEMY_DATABASE_URI = 'sqlite://./luncho.db3'
+    DEBUG = True
 
 log = logging.getLogger('luncho.server')
 
@@ -26,29 +26,22 @@ app.config.from_envvar('LUCNHO_CONFIG', True)
 # ----------------------------------------------------------------------
 #  Database
 # ----------------------------------------------------------------------
-from pony.orm import db_session
-from pony.orm import Database
-from pony.orm import PrimaryKey
-from pony.orm import Optional
-from pony.orm import Required
-
-db = Database("sqlite", app.config['SQLITE_FILENAME'], create_db=True)
+from flask.ext.sqlalchemy import SQLAlchemy
+db = SQLAlchemy(app)
 
 
-class User(db.Entity):
-    """Users."""
-    username = PrimaryKey(unicode)
-    fullname = Required(unicode)
-    passhash = Required(unicode)
-    token = Optional(unicode)   # 1. if the user never logged in, they will
-                                #    not have a token.
-                                # 2. This forces the user to have a single
-                                #    login everywhere, per day.
-    issue_date = Optional(datetime.datetime)
-    validated = Required(bool, default=False)
+class User(db.Model):
+    username = db.Column(db.String, primary_key=True)
+    full_name = db.Column(db.String, nullable=False)
+    passhash = db.Column(db.String, nullable=False)
+    token = db.Column(db.String)
+    issued_date = db.Column(db.Date)
+    validated = db.Column(db.Boolean, default=False)
 
-db.generate_mapping(create_tables=True)
-app.wsgi_app = db_session(app.wsgi_app)
+    def __init__(self, username, full_name, passhash):
+        self.username = username
+        self.full_name = full_name
+        self.passhash = passhash
 
 # ----------------------------------------------------------------------
 #  Blueprints

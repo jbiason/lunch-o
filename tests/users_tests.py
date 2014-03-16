@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 
+import os
 import tempfile
 import unittest
 import json
@@ -20,9 +21,8 @@ class TestUsers(unittest.TestCase):
         print server.app.config['SQLITE_FILENAME']
         self.app = server.app.test_client()
 
-    def tearDown(self):
-        # os.unlink(server.app.config['SQLITE_FILENAME'])
-        pass
+    # def tearDown(self):
+    #     os.unlink(server.app.config['SQLITE_FILENAME'])
 
     def test_create_user(self):
         request = {'username': 'username',
