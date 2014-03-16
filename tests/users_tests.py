@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 
-import tempfile
 import unittest
 import json
 
@@ -12,17 +11,11 @@ class TestUsers(unittest.TestCase):
     """Test users request."""
 
     def setUp(self):
-        (_, name) = tempfile.mkstemp()
-
-        server.app.config['SQLITE_FILENAME'] = name
+        server.app.config['SQLITE_FILENAME'] = ':memory:'
         server.app.config['TESTING'] = True
 
         print server.app.config['SQLITE_FILENAME']
         self.app = server.app.test_client()
-
-    def tearDown(self):
-        # os.unlink(server.app.config['SQLITE_FILENAME'])
-        pass
 
     def test_create_user(self):
         request = {'username': 'username',
