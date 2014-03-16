@@ -5,14 +5,14 @@
 
 from flask import Blueprint
 from flask import request
-# from flask import jsonify
+from flask import jsonify
 # from flask import current_app
 
 from pony.orm import commit
 
 from luncho.helpers import ForceJSON
 
-from luncho.database import User
+from luncho.server import User
 
 users = Blueprint('users', __name__)
 

@@ -8,6 +8,7 @@ from functools import wraps
 from flask import request
 from flask import jsonify
 
+
 class ForceJSON(object):
     def __init__(self, required=None):
         self.required = required or []
@@ -18,18 +19,19 @@ class ForceJSON(object):
             json = request.get_json(force=True, silent=True)
             if not json:
                 return jsonify(status='ERROR',
-                            error='Request MUST be in JSON format'), 400
+                               error='Request MUST be in JSON format'), 400
 
             # now we have the JSON, let's check if all the fields are here.
             missing = []
-            for field in required or []:
+            for field in self.required or []:
                 if not field in json:
                     missing.append(field)
 
             if missing:
+                fields = ', '.join(missing)
+                error = 'Missing fields: {fields}'.format(fields=fields)
                 return jsonify(status='ERROR',
-                            error='Missing fields: {fields}'.format(
-                                fields=', '.join(missing)))
+                               error=error)
 
             return func(*args, **kwargs)
         return check_json
