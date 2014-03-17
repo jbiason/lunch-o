@@ -64,3 +64,7 @@ class LunchoTests(unittest.TestCase):
         return self.app.put(url,
                             data=json.dumps(data),
                             content_type='application/json')
+
+    def delete(self, url):
+        """Send a DELETE request to the URL. There is no data to be send."""
+        return self.app.delete(url)

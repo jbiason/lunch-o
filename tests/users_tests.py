@@ -28,8 +28,7 @@ class TestUsers(LunchoTests):
         self.assertIsNotNone(User.query.filter_by(username='username').first())
 
     def test_duplicate_user(self):
-        """Check the status for trying to create a user that it is already
-        in the database."""
+        """Create a user that it is already in the database."""
         self.test_create_user()     # create the first user
 
         # now duplicate
@@ -44,7 +43,7 @@ class TestUsers(LunchoTests):
         self.assertJson(expected, rv.data)
 
     def test_no_json(self):
-        """Check the status when doing a request that it's not JSON."""
+        """Do a request that it's not JSON."""
         rv = self.put('/user/', '')
 
         expected = {"error": "Request MUST be in JSON format",
@@ -116,6 +115,40 @@ class TestExistingUsers(LunchoTests):
                    'password': 'newhash'}
         rv = self.post('/user/{token}/'.format(token=self.user.token),
                        request)
+
+        expected = {'status': 'ERROR',
+                    'error': 'Invalid token'}
+        self.assertStatusCode(rv, 400)
+        self.assertJson(expected, rv.data)
+
+    def test_delete_user(self):
+        """Delete a user."""
+        rv = self.delete('/user/{token}/'.format(token=self.user.token))
+
+        expected = {'status': 'OK'}
+        self.assertStatusCode(rv, 200)
+        self.assertJson(expected, rv.data)
+
+        # check the database
+        user = User.query.filter_by(username='test').first()
+        self.assertIsNone(user)
+
+    def test_delete_wrong_token(self):
+        """Send a delete to a non-existing token."""
+        rv = self.delete('/user/{token}/'.format(token='no-token'))
+
+        expected = {'status': 'ERROR',
+                    'error': 'User not found (via token)'}
+        self.assertStatusCode(rv, 404)
+        self.assertJson(expected, rv.data)
+
+    def test_delete_expired_token(self):
+        """Send a delete to a token for yesterday."""
+        # see note on `test_expired_token`
+        self.user.token = 'expired'
+        server.db.session.commit()
+
+        rv = self.delete('/user/{token}/'.format(token=self.user.token))
 
         expected = {'status': 'ERROR',
                     'error': 'Invalid token'}

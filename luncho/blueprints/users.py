@@ -68,3 +68,18 @@ def update_user(token):
 
     db.session.commit()
     return jsonify(status='OK')
+
+
+@users.route('<token>/', methods=['DELETE'])
+def delete_user(token):
+    """Delete a user. No confirmation is send."""
+    user = User.query.filter_by(token=token).first()
+    if not user:
+        return JSONError(404, 'User not found (via token)')
+
+    if not user.valid_token(token):
+        return JSONError(400, 'Invalid token')
+
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify(status='OK')
