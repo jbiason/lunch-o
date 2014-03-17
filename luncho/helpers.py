@@ -54,7 +54,7 @@ def JSONError(status, message, **kwargs):
 
     :return: A response with the JSON and the status code."""
     resp = jsonify(status='ERROR',
-                   message=message,
+                   error=message,
                    **kwargs)
     resp.status_code = status
     return resp

@@ -48,18 +48,13 @@ class User(db.Model):
         self.fullname = fullname
         self.passhash = passhash
         self.token = token
-        self.issued_date = issued_date
         self.validated = validated
         self.created_at = datetime.datetime.now()
 
     def get_token(self):
         """Generate a user token or return the current one for the day."""
-        if self.token and self.issued_date == datetime.date.today():
-            return self.token
-
         # create a token for the day
         self.token = self._token()
-        self.issued_date = datetime.date.today()
         db.session.commit()
         return self._token()
 

@@ -8,32 +8,21 @@ from luncho import server
 
 from luncho.server import User
 
+from base import LunchoTests
 
-class TestUsers(unittest.TestCase):
+
+class TestUsers(LunchoTests):
     """Test users request."""
-
-    def setUp(self):
-        # leave the database blank to make it in memory
-        server.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://'
-        server.app.config['TESTING'] = True
-
-        self.app = server.app.test_client()
-        server.db.create_all()
-
-    def tearDown(self):
-        server.db.drop_all(bind=None)
 
     def test_create_user(self):
         """Simple user creation."""
         request = {'username': 'username',
                    'full_name': 'full name',
                    'password': 'hash'}
-        rv = self.app.put('/user/',
-                          data=json.dumps(request),
-                          content_type='application/json')
+        rv = self.put('/user/', request)
 
-        self.assertEqual(rv.status_code, 200)
-        self.assertEqual(json.loads(rv.data), {'status': 'OK'})
+        self.assertStatusCode(rv, 200)
+        self.assertJson({'status': 'OK'}, rv.data)
 
         # db check
         self.assertIsNotNone(User.query.filter_by(username='username').first())
@@ -47,37 +36,92 @@ class TestUsers(unittest.TestCase):
         request = {'username': 'username',
                    'full_name': 'full name',
                    'password': 'hash'}
-        rv = self.app.put('/user/',
-                          data=json.dumps(request),
-                          content_type='application/json')
+        rv = self.put('/user/', data=request)
 
         expected = {"status": "ERROR",
-                    "error": "username already exists"}
-
-        self.assertEqual(rv.status_code, 409)
-        self.assertEqual(json.loads(rv.data), expected)
+                    "error": "Username already exists"}
+        self.assertStatusCode(rv, 409)
+        self.assertJson(expected, rv.data)
 
     def test_no_json(self):
         """Check the status when doing a request that it's not JSON."""
-        rv = self.app.put('/user/',
-                          data='',
-                          content_type='text/html')
+        rv = self.put('/user/', '')
 
         expected = {"error": "Request MUST be in JSON format",
                     "status": "ERROR"}
-        self.assertEqual(rv.status_code, 400)
-        self.assertEqual(json.loads(rv.data), expected)
+        self.assertStatusCode(rv, 400)
+        self.assertJson(expected, rv.data)
 
     def test_missing_fields(self):
+        """Send a request with missing fields."""
         request = {'password': 'hash'}
-        rv = self.app.put('/user/',
-                          data=json.dumps(request),
-                          content_type='application/json')
+        rv = self.put('/user/', request)
 
-        resp = {'error': 'Missing fields: username, full_name',
-                'status': 'ERROR'}
-        self.assertEqual(rv.status_code, 400)
-        self.assertEqual(json.loads(rv.data), resp)
+        expected = {'error': 'Missing fields: username, full_name',
+                    'status': 'ERROR'}
+        self.assertStatusCode(rv, 400)
+        self.assertJson(expected, rv.data)
+
+
+class TestExistingUsers(LunchoTests):
+    """Tests for existing users."""
+    def setUp(self):
+        super(TestExistingUsers, self).setUp()
+        self.user = User(username='test',
+                         fullname='Test User',
+                         passhash='hash')
+        server.db.session.add(self.user)
+        server.db.session.commit()
+        self.user.get_token()
+
+    def tearDown(self):
+        super(TestExistingUsers, self).tearDown()
+
+    def test_update_details(self):
+        """Update user details."""
+        request = {'full_name': 'New User Name',
+                   'password': 'newhash'}
+        rv = self.post('/user/{token}/'.format(token=self.user.token),
+                       request)
+
+        expected = {'status': 'OK'}
+        self.assertStatusCode(rv, 200)
+        self.assertJson(expected, rv.data)
+
+        # check in the database
+        user = User.query.filter_by(username='test').first()
+        self.assertEqual(user.fullname, request['full_name'])
+        self.assertEqual(user.passhash, request['password'])
+
+    def test_wrong_token(self):
+        """Send a request with an unexisting token."""
+        request = {'full_name': 'New User Name',
+                   'password': 'newhash'}
+        rv = self.post('/user/{token}/'.format(token='no-token'),
+                       request)
+
+        expected = {'status': 'ERROR',
+                    'error': 'User not found (via token)'}
+        self.assertStatusCode(rv, 404)
+        self.assertJson(expected, rv.data)
+
+    def test_expired_token(self):
+        """Send a token that exists but it's not valid for today."""
+        # the token is not valid by our standards, but it will be found and
+        # and the token for today will not be valid
+        self.user.token = 'expired'
+        server.db.session.commit()
+
+        request = {'full_name': 'New User Name',
+                   'password': 'newhash'}
+        rv = self.post('/user/{token}/'.format(token=self.user.token),
+                       request)
+
+        expected = {'status': 'ERROR',
+                    'error': 'Invalid token'}
+        self.assertStatusCode(rv, 400)
+        self.assertJson(expected, rv.data)
+
 
 if __name__ == '__main__':
     unittest.main()
