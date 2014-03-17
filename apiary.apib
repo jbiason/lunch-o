@@ -1,5 +1,5 @@
 FORMAT: 1A
-HOST: http://luncho.io/
+HOST: http://pospichil.com/luncho/
 
 # Lunch-o
 Lunching for Groups.
@@ -54,12 +54,12 @@ forbidden to create new groups. They can still vote, though.
 
         { "status": "ERROR", "error": "username already exists" }
         
-## Single User [/user/{token}/]
+## Single User [/user/{username}/]
 
 Manage a single user.
 
 + Parameters
-	+ token ... The user token
+    + username ... Username used in the creation process.
 
 ### Update information [POST]
 
@@ -69,7 +69,7 @@ change will require only the "token" and "password" fields.
 
 + Request (application/json)
 
-        { "full_name": "Full name", "password": "hash" }
+        { "token": "userToken", "full_name": "Full name", "password": "hash" }
         
 + Response 200 (application/json)
 
@@ -79,13 +79,17 @@ change will require only the "token" and "password" fields.
 
         { "status": "ERROR", "error": "Invalid token" }
         
-+ Response 404 (application/json)
++ Response 401 (application/json)
 
-		{ "status": "ERROR", "error": "User not found (via token)"}
+        { "status": "ERROR", "error": "User is not admin or not the same user" }
 
 ### Remove user [DELETE]
 
 User removal is only allowed to the user themselves or by a system admin.
+
++ Request (application/json)
+
+        { "token": "userToken" }
 
 + Response 200 (application/json)
 
