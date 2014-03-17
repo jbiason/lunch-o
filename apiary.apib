@@ -106,12 +106,12 @@ Places to have lunch.
 ## Places [/places/]
 
 Retrieve the list of all places the user has access. This is directly tied
-to the Gropu management and will return all the places the user have access
+to the Group management and will return all the places the user have access
 in their groups.
 
 ### Retrieval [GET]
 
-Return the list of all places in the system.
+Return the list of all places in the system that the user have access.
 
 + Resquest (application/json)
 
@@ -214,7 +214,7 @@ Groups are used to combine a group of users and their favorite places. A locatio
 will be considered "selected" when all users in that group have voted (or
 abstain in voting).
 
-## Groups [/groups/]
+## Groups [/groups/{token}/]
 
 Group management. Only users with verified accounts can create new groups. Once
 a group is created, the user becomes the "maintainer" of the group and only this
@@ -224,10 +224,6 @@ group.
 ### Getting groups [GET]
 
 Return groups in the system. Only groups in which the user belongs will be returned.
-
-+ Request (application/json)
-
-        { "token": "userToken" }
 
 + Response 200 (application/json)
 
@@ -258,7 +254,7 @@ The user will become the maintainer of the group once it is created.
 
         { "status": "ERROR", "error": "Account not verified" }
 
-## Group management [/group/{groupId}/]
+## Group management [/group/{token}/{groupId}/]
 
 Only the maintainer of the group can change the information for the group. As usual,
 only the required fields are necessary. Passing "maintainer" will change the
@@ -271,7 +267,7 @@ maintenance ownership to another user, immediatelly.
 
 + Request (application/json)
 
-        { "token": "userToken", "name": "Group name", "maintainer": "username" }
+        { "name": "Group name", "maintainer": "username" }
 
 + Response 200 (application/json)
 
@@ -292,28 +288,6 @@ maintenance ownership to another user, immediatelly.
 + Response 409 (application/json)
 
         { "status": "ERROR", "error": "New maintaner does not exist" }
-
-### Adding members [PUT]
-
-+ Request (application/json)
-
-        { "token": "userToken", "usernames": ["username"] }
-
-+ Response 200 (application/json)
-
-        { "status": "OK" }
-
-+ Response 400 (application/json)
-
-        { "status": "ERROR", "error": "Invalid token" }
-
-+ Response 401 (application/json)
-
-        { "status": "ERROR", "error": "User is not admin" }
-
-+ Response 404 (application/json)
-
-        { "status": "ERROR", "error": "Group not found" }
 
 ### Remove group [DELETE]
 
@@ -337,7 +311,32 @@ maintenance ownership to another user, immediatelly.
 
         { "status": "ERROR", "error": "Group not found" }
 
-## Users in the group [/group/{groupId}/users/{username}/]
+## Adding other users to the group [/group/{token}/{groupId}/users/]
+
+### Adding members [PUT]
+
++ Request (application/json)
+
+        { "usernames": ["username"] }
+
++ Response 200 (application/json)
+
+        { "status": "OK" }
+
++ Response 400 (application/json)
+
+        { "status": "ERROR", "error": "Invalid token" }
+
++ Response 401 (application/json)
+
+        { "status": "ERROR", "error": "User is not admin" }
+
++ Response 404 (application/json)
+
+        { "status": "ERROR", "error": "Group not found" }
+
+
+## Users in the group [/group/{token}/{groupId}/users/{username}/]
 
 Manage users in the group. The user (token owner) must be the maintainer of the
 group.
@@ -347,10 +346,6 @@ group.
     + username ... User username.
 
 ### Remove user [DELETE]
-
-+ Request (application/json)
-
-        { "token": "userToken" }
 
 + Response 200 (application/json)
 
@@ -373,19 +368,16 @@ group.
         { "status": "ERROR", "error": "User is not a member of this group" }
 
 
-## Places in the group [/group/{groupId}/places/]
+## Places in the group [/group/{token}/{groupId}/places/]
 
 The places the group has already selected as their prefered/nearby places
 for lunching.
 
 + Parameters
     + groupId ... The group ID.
+    + token ... The user token.
 
 ### Retrieve the places for the group [GET]
-
-+ Request (application/json)
-
-        { "token": "userToken" }
 
 + Response 200 (application/json)
 
