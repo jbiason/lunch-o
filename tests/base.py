@@ -39,7 +39,7 @@ class LunchoTests(unittest.TestCase):
                     key=key))
 
             if response[key] != expected[key]:
-                self.fail('Key {key} differs: Expected "{expected}", '
+                self.fail('Key "{key}" differs: Expected "{expected}", '
                           'response "{response}"'.format(
                               key=key,
                               expected=expected[key],
@@ -68,3 +68,7 @@ class LunchoTests(unittest.TestCase):
     def delete(self, url):
         """Send a DELETE request to the URL. There is no data to be send."""
         return self.app.delete(url)
+
+    def get(self, url):
+        """Send a GET request to the URL. There is no data to be send."""
+        return self.app.get(url)

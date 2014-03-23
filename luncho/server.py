@@ -32,6 +32,14 @@ app.config.from_envvar('LUCNHO_CONFIG', True)
 from flask.ext.sqlalchemy import SQLAlchemy
 db = SQLAlchemy(app)
 
+userGroups = db.Table('user_groups',
+                      db.Column('username',
+                                db.String,
+                                db.ForeignKey('user.username')),
+                      db.Column('group_id',
+                                db.Integer,
+                                db.ForeignKey('group.id')))
+
 
 class User(db.Model):
     username = db.Column(db.String, primary_key=True)
@@ -41,6 +49,9 @@ class User(db.Model):
     issued_date = db.Column(db.Date)
     validated = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, nullable=False)
+    groups = db.relationship('Group',
+                             secondary=userGroups,
+                             backref=db.backref('groups', lazy='dynamic'))
 
     def __init__(self, username, fullname, passhash, token=None,
                  issued_date=None, validated=False):
@@ -69,16 +80,23 @@ class User(db.Model):
         return hmac.new(self.created_at.isoformat(), phrase).hexdigest()
 
 
+class Group(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    owner = db.Column(db.String, db.ForeignKey('user.username'))
+
 # ----------------------------------------------------------------------
 #  Blueprints
 # ----------------------------------------------------------------------
 from blueprints.index import index
 from blueprints.users import users
 from blueprints.token import token
+from blueprints.groups import groups
 
 app.register_blueprint(index, url_prefix='/')
 app.register_blueprint(token, url_prefix='/token/')
 app.register_blueprint(users, url_prefix='/user/')
+app.register_blueprint(groups, url_prefix='/group/')
 
 
 # ----------------------------------------------------------------------

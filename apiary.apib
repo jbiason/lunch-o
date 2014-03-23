@@ -227,8 +227,8 @@ Return groups in the system. Only groups in which the user belongs will be retur
 
 + Response 200 (application/json)
 
-        { "status": "OK", "groups": [{"id": 1, "name": "Group 1"},
-                                     {"id": 2, "name": "Group 2"}] }
+        { "status": "OK", "groups": [{"id": 1, "name": "Group 1", "admin": true},
+                                     {"id": 2, "name": "Group 2", "admin": false}] }
 
 + Response 400 (application/json)
 

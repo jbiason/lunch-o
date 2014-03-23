@@ -37,10 +37,11 @@ def create_user():
 
         db.session.add(new_user)
         db.session.commit()
-
-        return jsonify(status='OK')
     except IntegrityError:
         return JSONError(409, 'Username already exists')
+
+    return jsonify(status='OK')
+
 
 @users.route('<token>/', methods=['POST'])
 @ForceJSON()
