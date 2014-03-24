@@ -52,6 +52,25 @@ class LunchoTests(unittest.TestCase):
         """Check the status code of the response."""
         self.assertEqual(response.status_code, status)
 
+    def assertJsonOk(self, response, **extras):
+        """Assert the the response is an OK. Extra fields can be expected
+        in the `extras` parameter."""
+        expected = {'status': 'OK'}
+        if extras:
+            expected.update(extras)
+        self.assertStatusCode(response, 200)
+        self.assertJson(response, expected)
+
+    def assertJsonError(self, response, status, message, **extras):
+        """Assert that the response is an error. Extra fields returned in
+        the JSON can be expected in the `extras` parameter."""
+        expected = {'status': 'ERROR', 'message': message}
+        if extras:
+            expected.update(extras)
+
+        self.assertStatusCode(response, status)
+        self.assertJson(response, expected)
+
     # ------------------------------------------------------------
     #  Easy way to convert the data to JSON and do requests
     # ------------------------------------------------------------

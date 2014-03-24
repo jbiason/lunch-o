@@ -20,9 +20,7 @@ class TestUsers(LunchoTests):
                    'full_name': 'full name',
                    'password': 'hash'}
         rv = self.put('/user/', request)
-
-        self.assertStatusCode(rv, 200)
-        self.assertJson(rv, {'status': 'OK'})
+        self.assertJsonOk(rv)
 
         # db check
         self.assertIsNotNone(User.query.filter_by(username='username').first())
@@ -36,30 +34,19 @@ class TestUsers(LunchoTests):
                    'full_name': 'full name',
                    'password': 'hash'}
         rv = self.put('/user/', data=request)
-
-        expected = {"status": "ERROR",
-                    "error": "Username already exists"}
-        self.assertStatusCode(rv, 409)
-        self.assertJson(rv, expected)
+        self.assertJsonError(rv, 409, 'Username already exists')
 
     def test_no_json(self):
         """Do a request that it's not JSON."""
         rv = self.put('/user/', '')
-
-        expected = {"error": "Request MUST be in JSON format",
-                    "status": "ERROR"}
-        self.assertStatusCode(rv, 400)
-        self.assertJson(rv, expected)
+        self.assertJsonError(rv, 400, 'Request MUST be in JSON format')
 
     def test_missing_fields(self):
         """Send a request with missing fields."""
         request = {'password': 'hash'}
         rv = self.put('/user/', request)
-
-        expected = {'error': 'Missing fields: username, full_name',
-                    'status': 'ERROR'}
-        self.assertStatusCode(rv, 400)
-        self.assertJson(rv, expected)
+        self.assertJsonError(rv, 400, 'Missing fields', fields=['username',
+                                                                'full_name'])
 
 
 class TestExistingUsers(LunchoTests):
@@ -84,8 +71,7 @@ class TestExistingUsers(LunchoTests):
                        request)
 
         expected = {'status': 'OK'}
-        self.assertStatusCode(rv, 200)
-        self.assertJson(rv, expected)
+        self.assertJsonOk(rv)
 
         # check in the database
         user = User.query.filter_by(username='test').first()
@@ -99,10 +85,7 @@ class TestExistingUsers(LunchoTests):
         rv = self.post('/user/{token}/'.format(token='no-token'),
                        request)
 
-        expected = {'status': 'ERROR',
-                    'error': 'User not found (via token)'}
-        self.assertStatusCode(rv, 404)
-        self.assertJson(rv, expected)
+        self.assertJsonError(rv, 404, 'User not found (via token)')
 
     def test_expired_token(self):
         """Send a token that exists but it's not valid for today."""
@@ -116,18 +99,12 @@ class TestExistingUsers(LunchoTests):
         rv = self.post('/user/{token}/'.format(token=self.user.token),
                        request)
 
-        expected = {'status': 'ERROR',
-                    'error': 'Invalid token'}
-        self.assertStatusCode(rv, 400)
-        self.assertJson(rv, expected)
+        self.assertJsonError(rv, 400, 'Invalid token')
 
     def test_delete_user(self):
         """Delete a user."""
         rv = self.delete('/user/{token}/'.format(token=self.user.token))
-
-        expected = {'status': 'OK'}
-        self.assertStatusCode(rv, 200)
-        self.assertJson(rv, expected)
+        self.assertJsonOk(rv)
 
         # check the database
         user = User.query.filter_by(username='test').first()
@@ -137,10 +114,7 @@ class TestExistingUsers(LunchoTests):
         """Send a delete to a non-existing token."""
         rv = self.delete('/user/{token}/'.format(token='no-token'))
 
-        expected = {'status': 'ERROR',
-                    'error': 'User not found (via token)'}
-        self.assertStatusCode(rv, 404)
-        self.assertJson(rv, expected)
+        self.assertJsonError(rv, 404, 'User not found (via token)')
 
     def test_delete_expired_token(self):
         """Send a delete to a token for yesterday."""
@@ -150,10 +124,7 @@ class TestExistingUsers(LunchoTests):
 
         rv = self.delete('/user/{token}/'.format(token=self.user.token))
 
-        expected = {'status': 'ERROR',
-                    'error': 'Invalid token'}
-        self.assertStatusCode(rv, 400)
-        self.assertJson(rv, expected)
+        self.assertJsonError(rv, 400, 'Invalid token')
 
 
 if __name__ == '__main__':

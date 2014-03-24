@@ -20,10 +20,7 @@ class ForceJSON(object):
         def check_json(*args, **kwargs):
             json = request.get_json(force=True, silent=True)
             if not json:
-                resp = jsonify(status='ERROR',
-                               error='Request MUST be in JSON format')
-                resp.status_code = 400
-                return resp
+                return JSONError(400, 'Request MUST be in JSON format')
 
             # now we have the JSON, let's check if all the fields are here.
             missing = []
@@ -32,12 +29,7 @@ class ForceJSON(object):
                     missing.append(field)
 
             if missing:
-                fields = ', '.join(missing)
-                error = 'Missing fields: {fields}'.format(fields=fields)
-                resp = jsonify(status='ERROR',
-                               error=error)
-                resp.status_code = 400
-                return resp
+                return JSONError(400, 'Missing fields', fields=missing)
 
             return func(*args, **kwargs)
         return check_json
@@ -56,7 +48,7 @@ def JSONError(status, message, **kwargs):
 
     :return: A response with the JSON and the status code."""
     resp = jsonify(status='ERROR',
-                   error=message,
+                   message=message,
                    **kwargs)
     resp.status_code = status
     return resp
