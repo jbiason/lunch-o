@@ -28,10 +28,13 @@ class LunchoTests(unittest.TestCase):
     #  Common assertions for lunch-o
     # ------------------------------------------------------------
 
-    def assertJson(self, expected, response):
-        """Compare JSONs."""
-        if not isinstance(response, dict):
-            response = json.loads(response)
+    def assertJson(self, response, expected):
+        """Compare JSONs.
+
+        :param response: a test_client response
+        :param expected: expected response
+        :type expected: dict"""
+        response = json.loads(response.data)
 
         for key in expected:
             if not key in response:

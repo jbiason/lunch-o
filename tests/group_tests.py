@@ -32,7 +32,7 @@ class TestGroups(LunchoTests):
         expected = {'status': 'OK',
                     'groups': []}
         self.assertStatusCode(rv, 200)
-        self.assertJson(expected, rv.data)
+        self.assertJson(rv, expected)
 
     def test_create_group(self):
         """Test creating a group."""
@@ -43,7 +43,7 @@ class TestGroups(LunchoTests):
         expected = {'status': 'OK', 'id': 1}    # always 1 'cause the database
                                                 # is erased on every test
         self.assertStatusCode(rv, 200)
-        self.assertJson(expected, rv.data)
+        self.assertJson(rv, expected)
 
     def test_create_group_unverified_account(self):
         """Try creating a group with an account that's not verified yet."""
@@ -57,7 +57,7 @@ class TestGroups(LunchoTests):
         expected = {'status': 'ERROR',
                     'error': 'Account not verified'}
         self.assertStatusCode(rv, 412)
-        self.assertJson(expected, rv.data)
+        self.assertJson(rv, expected)
 
     def test_user_in_own_group(self):
         """The user must belong to a group it owns."""
@@ -69,7 +69,7 @@ class TestGroups(LunchoTests):
                                 'name': 'Test group',
                                 'admin': True}]}
         self.assertStatusCode(rv, 200)
-        self.assertJson(expected, rv.data)
+        self.assertJson(rv, expected)
 
 
 class TestExistingGroups(LunchoTests):
@@ -102,7 +102,7 @@ class TestExistingGroups(LunchoTests):
                        request)
         expected = {'status': 'OK'}
         self.assertStatusCode(rv, 200)
-        self.assertJson(expected, rv.data)
+        self.assertJson(rv, expected)
 
         # check the database
         group = Group.query.get(groupId)
@@ -126,7 +126,7 @@ class TestExistingGroups(LunchoTests):
             request)
         expected = {'status': 'OK'}
         self.assertStatusCode(rv, 200)
-        self.assertJson(expected, rv.data)
+        self.assertJson(rv, expected)
 
         # check the database
         group = Group.query.get(groupId)
@@ -142,7 +142,7 @@ class TestExistingGroups(LunchoTests):
             request)
         expected = {'status': 'ERROR', 'error': 'Group not found'}
         self.assertStatusCode(rv, 404)
-        self.assertJson(expected, rv.data)
+        self.assertJson(rv, expected)
 
     def test_delete_group(self):
         """Delete a group."""
@@ -152,7 +152,7 @@ class TestExistingGroups(LunchoTests):
             groupId=groupId))
         expected = {'status': 'OK'}
         self.assertStatusCode(rv, 200)
-        self.assertJson(expected, rv.data)
+        self.assertJson(rv, expected)
 
     def test_delete_unknown_group(self):
         """Delete a group that doesn't exist."""
@@ -162,7 +162,7 @@ class TestExistingGroups(LunchoTests):
             groupId=groupId))
         expected = {'status': 'ERROR', 'error': 'Group not found'}
         self.assertStatusCode(rv, 404)
-        self.assertJson(expected, rv.data)
+        self.assertJson(rv, expected)
 
     def test_delete_not_admin(self):
         """Try to delete a group when the user is not the admin."""
@@ -178,7 +178,7 @@ class TestExistingGroups(LunchoTests):
             groupId=self.group.id))
         expected = {'status': 'ERROR', 'error': 'User is not admin'}
         self.assertStatusCode(rv, 401)
-        self.assertJson(expected, rv.data)
+        self.assertJson(rv, expected)
 
 if __name__ == '__main__':
     unittest.main()
