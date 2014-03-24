@@ -1,0 +1,4 @@
+nose
+nosexcover
+sphinx
+sphinxcontrib-httpdomain
