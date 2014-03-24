@@ -8,6 +8,8 @@ from functools import wraps
 from flask import request
 from flask import jsonify
 
+from luncho.server import User
+
 
 class ForceJSON(object):
     def __init__(self, required=None):
@@ -58,3 +60,23 @@ def JSONError(status, message, **kwargs):
                    **kwargs)
     resp.status_code = status
     return resp
+
+
+def user_or_error(token):
+    """Returns a tuple with the user that owns the token and the error. If the
+    token is valid, user will have the user object and error will be None; if
+    there is something wrong with the token, the user will be None and the
+    error will have a Response created with :py:func:`JSONError`.
+
+    :param token: The token received
+    :type token: str
+
+    :return: Tuple with the user and the error."""
+    user = User.query.filter_by(token=token).first()
+    if not user:
+        return (None, JSONError(404, 'User not found (via token)'))
+
+    if not user.valid_token(token):
+        return (None, JSONError(400, 'Invalid token'))
+
+    return (user, None)

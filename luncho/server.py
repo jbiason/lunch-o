@@ -54,12 +54,12 @@ class User(db.Model):
                              backref=db.backref('groups', lazy='dynamic'))
 
     def __init__(self, username, fullname, passhash, token=None,
-                 issued_date=None, validated=False):
+                 issued_date=None, verified=False):
         self.username = username
         self.fullname = fullname
         self.passhash = passhash
         self.token = token
-        self.validated = validated
+        self.verified = verified
         self.created_at = datetime.datetime.now()
 
     def get_token(self):
@@ -84,6 +84,10 @@ class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     owner = db.Column(db.String, db.ForeignKey('user.username'))
+
+    def __init__(self, name, owner):
+        self.name = name
+        self.owner = owner
 
 # ----------------------------------------------------------------------
 #  Blueprints

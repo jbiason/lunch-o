@@ -33,7 +33,7 @@ def create_user():
         new_user = User(username=json['username'],
                         fullname=json['full_name'],
                         passhash=json['password'],
-                        validated=False)
+                        verified=False)
 
         db.session.add(new_user)
         db.session.commit()
