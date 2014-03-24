@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 
-import sys
 import logging
 import json
 import hmac
@@ -106,11 +105,3 @@ app.register_blueprint(index, url_prefix='/')
 app.register_blueprint(token, url_prefix='/token/')
 app.register_blueprint(users, url_prefix='/user/')
 app.register_blueprint(groups, url_prefix='/group/')
-
-
-# ----------------------------------------------------------------------
-#  Main
-# ----------------------------------------------------------------------
-if __name__ == '__main__':
-    log.warning('Use manage.py to run the server.')
-    sys.exit(1)

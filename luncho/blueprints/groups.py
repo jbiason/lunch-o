@@ -55,17 +55,14 @@ def create_group(token):
         return JSONError(412, 'Account not verified')
 
     json = request.get_json(force=True)
-    try:
-        new_group = Group(name=json['name'],
-                          owner=user.username)
+    new_group = Group(name=json['name'],
+                        owner=user.username)
 
-        LOG.debug('Current user groups: {groups}'.format(groups=user.groups))
-        user.groups.append(new_group)
+    LOG.debug('Current user groups: {groups}'.format(groups=user.groups))
+    user.groups.append(new_group)
 
-        db.session.add(new_group)
-        db.session.commit()
-    except IntegrityError:
-        return JSONError(500, 'Unknown error')
+    db.session.add(new_group)
+    db.session.commit()
 
     return jsonify(status='OK',
                    id=new_group.id)
