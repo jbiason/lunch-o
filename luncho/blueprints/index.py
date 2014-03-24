@@ -34,4 +34,4 @@ def show_routes():
         ])
 
     routes.sort(key=itemgetter(0))
-    return jsonify(routes)
+    return jsonify(status='OK', api=routes)
