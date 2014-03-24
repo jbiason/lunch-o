@@ -69,3 +69,29 @@ def create_group(token):
 
     return jsonify(status='OK',
                    id=new_group.id)
+
+
+@groups.route('<token>/<groupId>/', methods=['POST'])
+@ForceJSON()
+def update_group(token, groupId):
+    """Update group information."""
+    (user, error) = user_or_error(token)
+    if error:
+        return error
+
+    group = Group.query.get(groupId)
+    if not group:
+        return JSONError(404, 'Group not found')
+
+    json = request.get_json(force=True)
+    if 'name' in json:
+        group.name = json['name']
+
+    if 'maintainer' in json:
+        new_maintainer = User.query.get(json['maintainer'])
+        if not new_maintainer:
+            return JSONError(401, 'New maintainer not found')
+        group.owner = new_maintainer.username
+
+    db.session.commit()
+    return jsonify(status='OK')
