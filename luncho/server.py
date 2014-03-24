@@ -8,6 +8,8 @@ import datetime
 
 from flask import Flask
 
+from luncho.exceptions import LunchoException
+
 
 # ----------------------------------------------------------------------
 #  Config
@@ -105,3 +107,12 @@ app.register_blueprint(index, url_prefix='/')
 app.register_blueprint(token, url_prefix='/token/')
 app.register_blueprint(users, url_prefix='/user/')
 app.register_blueprint(groups, url_prefix='/group/')
+
+
+# ----------------------------------------------------------------------
+#  Error management
+# ----------------------------------------------------------------------
+@app.errorhandler(LunchoException)
+def handle_luncho_exception(error):
+    """Normal luncho error."""
+    return error.response()

@@ -17,9 +17,19 @@ from luncho.helpers import JSONError
 from luncho.server import User
 from luncho.server import db
 
+from luncho.exceptions import LunchoException
+
 LOG = logging.getLogger('luncho.blueprints.users')
 
 users = Blueprint('users', __name__)
+
+
+class UsernameAlreadyExistsException(LunchoException):
+    """The username is already taken."""
+    def __init__(self):
+        super(UsernameAlreadyExistsException, self).__init__()
+        self.status = 409
+        self.message = 'Username already exists'
 
 
 @users.route('', methods=['PUT'])
@@ -38,7 +48,7 @@ def create_user():
         db.session.add(new_user)
         db.session.commit()
     except IntegrityError:
-        return JSONError(409, 'Username already exists')
+        raise UsernameAlreadyExistsException()
 
     return jsonify(status='OK')
 

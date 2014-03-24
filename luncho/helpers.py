@@ -10,6 +10,11 @@ from flask import jsonify
 
 from luncho.server import User
 
+from luncho.exceptions import RequestMustBeJSONException
+from luncho.exceptions import InvalidTokenException
+from luncho.exceptions import MissingFieldsException
+from luncho.exceptions import UserNotFoundException
+
 
 class ForceJSON(object):
     def __init__(self, required=None):
@@ -20,7 +25,7 @@ class ForceJSON(object):
         def check_json(*args, **kwargs):
             json = request.get_json(force=True, silent=True)
             if not json:
-                return JSONError(400, 'Request MUST be in JSON format')
+                raise RequestMustBeJSONException()
 
             # now we have the JSON, let's check if all the fields are here.
             missing = []
@@ -29,7 +34,7 @@ class ForceJSON(object):
                     missing.append(field)
 
             if missing:
-                return JSONError(400, 'Missing fields', fields=missing)
+                raise MissingFieldsException(missing)
 
             return func(*args, **kwargs)
         return check_json
@@ -66,9 +71,9 @@ def user_or_error(token):
     :return: Tuple with the user and the error."""
     user = User.query.filter_by(token=token).first()
     if not user:
-        return (None, JSONError(404, 'User not found (via token)'))
+        raise UserNotFoundException()
 
     if not user.valid_token(token):
-        return (None, JSONError(400, 'Invalid token'))
+        raise InvalidTokenException()
 
     return (user, None)
