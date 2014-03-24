@@ -8,18 +8,15 @@ from luncho import server
 
 from luncho.server import User
 
+from base import LunchoTests
 
-class TestToken(unittest.TestCase):
+
+class TestToken(LunchoTests):
     """Test token requests."""
 
     def setUp(self):
         # leave the database blank to make it in memory
-        server.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://'
-        server.app.config['TESTING'] = True
-
-        self.app = server.app.test_client()
-        server.db.create_all()
-
+        super(TestToken, self).setUp()
         # add a user
         self.test_user = User(username='test',
                               fullname='Testing user',
@@ -28,7 +25,7 @@ class TestToken(unittest.TestCase):
         server.db.session.commit()
 
     def tearDown(self):
-        server.db.drop_all(bind=None)
+        super(TestToken, self).tearDown()
 
     def test_create_token(self):
         """Test requesting a token"""
@@ -38,10 +35,8 @@ class TestToken(unittest.TestCase):
                            data=json.dumps(request),
                            content_type='application/json')
 
-        self.assertEqual(rv.status_code, 200)
+        self.assertJsonOk(rv)
         response = json.loads(rv.data)
-        self.assertTrue('status' in response)
-        self.assertEqual(response['status'], 'OK')
         self.assertTrue('token' in response)
         # we can't check the token itself 'cause it should change every day
 
@@ -52,16 +47,14 @@ class TestToken(unittest.TestCase):
         rv = self.app.post('/token/',
                            data=json.dumps(request),
                            content_type='application/json')
-
-        self.assertEqual(rv.status_code, 200)
+        self.assertJsonOk(rv)
         response = json.loads(rv.data)
 
         # re-request the token
         rv = self.app.post('/token/',
                            data=json.dumps(request),
                            content_type='application/json')
-
-        self.assertTrue(rv.status_code, 200)
+        self.assertJsonOk(rv)
         self.assertEqual(response['token'], json.loads(rv.data)['token'])
 
     def test_no_such_user(self):
@@ -72,5 +65,16 @@ class TestToken(unittest.TestCase):
         rv = self.app.post('/token/',
                            data=json.dumps(request),
                            content_type='application/json')
+        self.assertJsonError(rv, 404, 'User does not exist')
 
-        self.assertEqual(rv.status_code, 404)
+    def test_wrong_password(self):
+        """Try to log with the wrong password."""
+        request = {'username': 'test',
+                   'password': 'nothing'}
+        rv = self.app.post('/token/',
+                           data=json.dumps(request),
+                           content_type='application/json')
+        self.assertJsonError(rv, 401, 'Invalid password')
+
+if __name__ == '__main__':
+    unittest.main()
