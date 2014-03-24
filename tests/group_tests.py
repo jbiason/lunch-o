@@ -120,9 +120,10 @@ class TestExistingGroups(LunchoTests):
         new_username = new_user.username
 
         request = {'maintainer': new_user.username}
-        rv = self.post('/group/{token}/{groupId}/'.format(token=self.user.token,
-                                                          groupId=self.group.id),
-                       request)
+        rv = self.post('/group/{token}/{groupId}/'.format(
+            token=self.user.token,
+            groupId=self.group.id),
+            request)
         expected = {'status': 'OK'}
         self.assertStatusCode(rv, 200)
         self.assertJson(expected, rv.data)
@@ -130,6 +131,54 @@ class TestExistingGroups(LunchoTests):
         # check the database
         group = Group.query.get(groupId)
         self.assertEqual(group.owner, new_username)
+
+    def test_update_unknown_group(self):
+        """Try to update a group that doesn't exist."""
+        groupId = self.group.id + 10
+        request = {'name': 'New test group'}
+        rv = self.post('/group/{token}/{groupId}/'.format(
+            token=self.user.token,
+            groupId=groupId),
+            request)
+        expected = {'status': 'ERROR', 'error': 'Group not found'}
+        self.assertStatusCode(rv, 404)
+        self.assertJson(expected, rv.data)
+
+    def test_delete_group(self):
+        """Delete a group."""
+        groupId = self.group.id
+        rv = self.delete('/group/{token}/{groupId}/'.format(
+            token=self.user.token,
+            groupId=groupId))
+        expected = {'status': 'OK'}
+        self.assertStatusCode(rv, 200)
+        self.assertJson(expected, rv.data)
+
+    def test_delete_unknown_group(self):
+        """Delete a group that doesn't exist."""
+        groupId = self.group.id + 10
+        rv = self.delete('/group/{token}/{groupId}/'.format(
+            token=self.user.token,
+            groupId=groupId))
+        expected = {'status': 'ERROR', 'error': 'Group not found'}
+        self.assertStatusCode(rv, 404)
+        self.assertJson(expected, rv.data)
+
+    def test_delete_not_admin(self):
+        """Try to delete a group when the user is not the admin."""
+        new_user = User(username='another_user',
+                        fullname='Another user',
+                        passhash='hash')
+        server.db.session.add(new_user)
+        server.db.session.commit()
+        new_user.get_token()
+
+        rv = self.delete('/group/{token}/{groupId}/'.format(
+            token=new_user.token,
+            groupId=self.group.id))
+        expected = {'status': 'ERROR', 'error': 'User is not admin'}
+        self.assertStatusCode(rv, 401)
+        self.assertJson(expected, rv.data)
 
 if __name__ == '__main__':
     unittest.main()

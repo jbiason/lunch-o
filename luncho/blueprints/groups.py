@@ -83,6 +83,8 @@ def update_group(token, groupId):
     if not group:
         return JSONError(404, 'Group not found')
 
+    LOG.debug('Group = {group}'.format(group=group))
+
     json = request.get_json(force=True)
     if 'name' in json:
         group.name = json['name']
@@ -94,4 +96,24 @@ def update_group(token, groupId):
         group.owner = new_maintainer.username
 
     db.session.commit()
+    return jsonify(status='OK')
+
+
+@groups.route('<token>/<groupId>/', methods=['DELETE'])
+def delete_group(token, groupId):
+    """Delete a group."""
+    (user, error) = user_or_error(token)
+    if error:
+        return error
+
+    group = Group.query.get(groupId)
+    if not group:
+        return JSONError(404, 'Group not found')
+
+    if not group.owner == user.username:
+        return JSONError(401, 'User is not admin')
+
+    db.session.delete(group)
+    db.session.commit()
+
     return jsonify(status='OK')

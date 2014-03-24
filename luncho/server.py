@@ -89,6 +89,11 @@ class Group(db.Model):
         self.name = name
         self.owner = owner
 
+    def __repr__(self):
+        return 'Group {id}-{name}-{owner}'.format(id=self.id,
+                                                  name=self.name,
+                                                  owner=self.owner)
+
 # ----------------------------------------------------------------------
 #  Blueprints
 # ----------------------------------------------------------------------
