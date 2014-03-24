@@ -58,5 +58,17 @@ class TestGroups(LunchoTests):
         self.assertStatusCode(rv, 412)
         self.assertJson(expected, rv.data)
 
+    def test_user_in_own_group(self):
+        """The user must belong to a group it owns."""
+        token = self.user.token
+        self.test_create_group()
+        rv = self.get('/group/{token}/'.format(token=token))
+        expected = {'status': 'OK',
+                    'groups': [{'id': 1,
+                                'name': 'Test group',
+                                'admin': True}]}
+        self.assertStatusCode(rv, 200)
+        self.assertJson(expected, rv.data)
+
 if __name__ == '__main__':
     unittest.main()

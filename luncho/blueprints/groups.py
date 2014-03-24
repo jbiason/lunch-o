@@ -35,10 +35,11 @@ def user_groups(token):
     for group in user.groups:
         groups[group.id] = {'id': group.id,
                             'name': group.name,
-                            'admin': group.owner.username == user.username}
+                            'admin': group.owner == user.username}
 
     return jsonify(status='OK',
                    groups=groups.values())
+
 
 @groups.route('<token>/', methods=['PUT'])
 @ForceJSON(required=['name'])
@@ -58,6 +59,7 @@ def create_group(token):
         new_group = Group(name=json['name'],
                           owner=user.username)
 
+        LOG.debug('Current user groups: {groups}'.format(groups=user.groups))
         user.groups.append(new_group)
 
         db.session.add(new_group)
