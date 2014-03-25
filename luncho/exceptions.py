@@ -53,3 +53,11 @@ class UserNotFoundException(LunchoException):
         super(UserNotFoundException, self).__init__()
         self.status = 404
         self.message = 'User not found (via token)'
+
+
+class ElementNotFoundException(LunchoException):
+    """The requested element does not exist."""
+    def __init__(self, element_name):
+        super(ElementNotFoundException, self).__init__()
+        self.status = 404
+        self.message = '{element} not found'.format(element=element_name)

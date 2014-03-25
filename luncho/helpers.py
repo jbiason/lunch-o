@@ -40,26 +40,7 @@ class ForceJSON(object):
         return check_json
 
 
-def JSONError(status, message, **kwargs):
-    """Generate a JSON error message with the error and extra fields.
-
-    :param status: the HTTP status code for the error
-    :type status: int
-    :param message: The message in the error
-    :type message: str
-    :param kwargs: Extra fields to be added in the response. *Note*: `status`
-                   and `message` should **NOT** be used.
-    :type kwargs: kwargs
-
-    :return: A response with the JSON and the status code."""
-    resp = jsonify(status='ERROR',
-                   message=message,
-                   **kwargs)
-    resp.status_code = status
-    return resp
-
-
-def user_or_error(token):
+def user_from_token(token):
     """Returns a tuple with the user that owns the token and the error. If the
     token is valid, user will have the user object and error will be None; if
     there is something wrong with the token, the user will be None and the
@@ -76,4 +57,4 @@ def user_or_error(token):
     if not user.valid_token(token):
         raise InvalidTokenException()
 
-    return (user, None)
+    return user

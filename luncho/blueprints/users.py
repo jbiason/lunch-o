@@ -12,7 +12,7 @@ from flask import jsonify
 from sqlalchemy.exc import IntegrityError
 
 from luncho.helpers import ForceJSON
-from luncho.helpers import JSONError
+from luncho.helpers import user_from_token
 
 from luncho.server import User
 from luncho.server import db
@@ -61,13 +61,7 @@ def update_user(token):
     Any other field will be ignored; only fields that need to be changed
     must be send."""
     json = request.get_json(force=True)
-
-    user = User.query.filter_by(token=token).first()
-    if not user:
-        return JSONError(404, 'User not found (via token)')
-
-    if not user.valid_token(token):
-        return JSONError(400, 'Invalid token')
+    user = user_from_token(token)
 
     if 'full_name' in json:
         LOG.debug('Fullname = {fullname}'.format(fullname=json['full_name']))
@@ -84,13 +78,7 @@ def update_user(token):
 @users.route('<token>/', methods=['DELETE'])
 def delete_user(token):
     """Delete a user. No confirmation is send."""
-    user = User.query.filter_by(token=token).first()
-    if not user:
-        return JSONError(404, 'User not found (via token)')
-
-    if not user.valid_token(token):
-        return JSONError(400, 'Invalid token')
-
+    user = user_from_token(token)
     db.session.delete(user)
     db.session.commit()
     return jsonify(status='OK')

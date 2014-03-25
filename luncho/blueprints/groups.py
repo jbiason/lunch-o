@@ -12,12 +12,39 @@ from flask import jsonify
 from sqlalchemy.exc import IntegrityError
 
 from luncho.helpers import ForceJSON
-from luncho.helpers import JSONError
-from luncho.helpers import user_or_error
+from luncho.helpers import user_from_token
 
 from luncho.server import User
 from luncho.server import Group
 from luncho.server import db
+
+from luncho.exceptions import LunchoException
+from luncho.exceptions import ElementNotFoundException
+
+
+class AccountNotVerifiedException(LunchoException):
+    """The account isn't verified."""
+    def __init__(self):
+        super(AccountNotVerifiedException, self).__init__()
+        self.status = 412
+        self.message = 'Account not verified'
+
+
+class NewMaintainerDoesNotExistException(LunchoException):
+    """The account for the new maintainer does not exist."""
+    def __init__(self):
+        super(NewMaintainerDoesNotExistException, self).__init__()
+        self.status = 401
+        self.message = 'New maintainer not found'
+
+
+class UserIsNotAdminException(LunchoException):
+    """The user is not the admin of the group."""
+    def __init__(self):
+        super(UserIsNotAdminException, self).__init__()
+        self.status = 401
+        self.message = 'User is not admin'
+
 
 groups = Blueprint('groups', __name__)
 
@@ -45,14 +72,11 @@ def user_groups(token):
 @ForceJSON(required=['name'])
 def create_group(token):
     """Create a new group belonging to the user."""
-    (user, error) = user_or_error(token)
-    if error:
-        return error
-
+    user = user_from_token(token)
     LOG.debug('User status: {verified}'.format(verified=user.verified))
 
     if not user.verified:
-        return JSONError(412, 'Account not verified')
+        raise AccountNotVerifiedException()
 
     json = request.get_json(force=True)
     new_group = Group(name=json['name'],
@@ -72,13 +96,10 @@ def create_group(token):
 @ForceJSON()
 def update_group(token, groupId):
     """Update group information."""
-    (user, error) = user_or_error(token)
-    if error:
-        return error
-
+    user = user_from_token(token)
     group = Group.query.get(groupId)
     if not group:
-        return JSONError(404, 'Group not found')
+        raise ElementNotFoundException('Group')
 
     LOG.debug('Group = {group}'.format(group=group))
 
@@ -89,7 +110,8 @@ def update_group(token, groupId):
     if 'maintainer' in json:
         new_maintainer = User.query.get(json['maintainer'])
         if not new_maintainer:
-            return JSONError(401, 'New maintainer not found')
+            raise NewMaintainerDoesNotExistException()
+
         group.owner = new_maintainer.username
 
     db.session.commit()
@@ -99,16 +121,13 @@ def update_group(token, groupId):
 @groups.route('<token>/<groupId>/', methods=['DELETE'])
 def delete_group(token, groupId):
     """Delete a group."""
-    (user, error) = user_or_error(token)
-    if error:
-        return error
-
+    user = user_from_token(token)
     group = Group.query.get(groupId)
     if not group:
-        return JSONError(404, 'Group not found')
+        raise ElementNotFoundException('Group')
 
     if not group.owner == user.username:
-        return JSONError(401, 'User is not admin')
+        raise UserIsNotAdminException()
 
     db.session.delete(group)
     db.session.commit()
