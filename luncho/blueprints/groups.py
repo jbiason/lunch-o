@@ -54,10 +54,7 @@ LOG = logging.getLogger('luncho.blueprints.groups')
 @groups.route('<token>/', methods=['GET'])
 def user_groups(token):
     """Return a list of the groups the user belongs or it's the owner."""
-    (user, error) = user_or_error(token)
-    if error:
-        return error
-
+    user = user_from_token(token)
     groups = {}
     for group in user.groups:
         groups[group.id] = {'id': group.id,
