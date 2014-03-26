@@ -73,7 +73,3 @@ API
    :maxdepth: 2
 
    users_and_tokens
-
-.. autoflask:: luncho.server:app
-   :blueprints: token, users
-   :undoc-endpoints: static
