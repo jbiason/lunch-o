@@ -10,10 +10,13 @@ from flask import request
 from luncho.helpers import ForceJSON
 
 from luncho.server import User
-from luncho.server import db
 
 from luncho.exceptions import LunchoException
 
+
+# ----------------------------------------------------------------------
+#  Exceptions
+# ----------------------------------------------------------------------
 
 class UserDoesNotExistException(LunchoException):
     """There is no such user in the database."""
@@ -30,13 +33,53 @@ class InvalidPasswordException(LunchoException):
         self.status = 401
         self.message = 'Invalid password'
 
+# ----------------------------------------------------------------------
+#  The blueprint
+# ----------------------------------------------------------------------
+
 token = Blueprint('token', __name__)
+
 
 @token.route('', methods=['POST'])
 @ForceJSON(required=['username', 'password'])
 def get_token():
-    """Return an access token to the user. Request must be:
-    { "username": "username", "password": "hash" }"""
+    """Return the access token. Most of the other requests require a valid
+    token; a token will be valid for a whole day and you should only request a
+    token when you either don't have one or you receive a status 400.
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+       { "username": "myUsername", "password": "myPassword" }
+
+    **Success (200)**:
+
+    .. sourcecode:: http
+
+       HTTP/1.1 200 OK
+       Content-Type: text/json
+
+       { "status": "OK", "token": "access_token" }
+
+    **Invalid password (401)**:
+
+    .. sourcecode:: http
+
+       HTTP/1.1 401 Unauthorized
+       Content-Type: text/json
+
+       { "status": "ERROR", "message": "Invalid password" }
+
+    **Unknown user (404)**:
+
+    .. sourcecode:: http
+
+       HTTP/1.1 404 Not found
+       Content-Type: text/json
+
+       { "status": "ERROR", "message": "User does not exist" }
+    """
     json = request.get_json(force=True)
 
     user = User.query.filter_by(username=json['username']).first()
