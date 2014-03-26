@@ -19,6 +19,7 @@ import os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('..'))
+sys.path.append(os.path.abspath('_themes/flask-sphinx-themes'))
 
 # -- General configuration ------------------------------------------------
 
@@ -103,7 +104,8 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+#html_theme = 'default'
+html_theme = 'flask'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -111,7 +113,7 @@ html_theme = 'default'
 #html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-#html_theme_path = []
+html_theme_path = ['_themes/flask-sphinx-themes/']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -187,22 +189,22 @@ htmlhelp_basename = 'Luncho-odoc'
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
-# The paper size ('letterpaper' or 'a4paper').
-#'papersize': 'letterpaper',
+    # The paper size ('letterpaper' or 'a4paper').
+    #'papersize': 'letterpaper',
 
-# The font size ('10pt', '11pt' or '12pt').
-#'pointsize': '10pt',
+    # The font size ('10pt', '11pt' or '12pt').
+    #'pointsize': '10pt',
 
-# Additional stuff for the LaTeX preamble.
-#'preamble': '',
+    # Additional stuff for the LaTeX preamble.
+    #'preamble': '',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'Luncho-o.tex', u'Luncho-o Documentation',
-   u'Julio Biason', 'manual'),
+    ('index', 'Luncho-o.tex', u'Luncho-o Documentation',
+     u'Julio Biason', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -245,9 +247,9 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'Luncho-o', u'Luncho-o Documentation',
-   u'Julio Biason', 'Luncho-o', 'One line description of project.',
-   'Miscellaneous'),
+    ('index', 'Luncho-o', u'Luncho-o Documentation',
+     u'Julio Biason', 'Luncho-o', 'Lunch for groups.',
+     'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.
