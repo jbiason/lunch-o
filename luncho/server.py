@@ -6,7 +6,10 @@ import json
 import hmac
 import datetime
 
+from operator import itemgetter
+
 from flask import Flask
+from flask import jsonify
 
 from luncho.exceptions import LunchoException
 
@@ -98,15 +101,45 @@ class Group(db.Model):
 # ----------------------------------------------------------------------
 #  Blueprints
 # ----------------------------------------------------------------------
-from blueprints.index import index
 from blueprints.users import users
 from blueprints.token import token
 from blueprints.groups import groups
 
-app.register_blueprint(index, url_prefix='/')
 app.register_blueprint(token, url_prefix='/token/')
 app.register_blueprint(users, url_prefix='/user/')
 app.register_blueprint(groups, url_prefix='/group/')
+
+
+# ----------------------------------------------------------------------
+#  The index is a special case
+# ----------------------------------------------------------------------
+@app.route('/', methods=['GET'])
+def show_api():
+    """Return the list of APIs."""
+    routes = []
+
+    for rule in app.url_map.iter_rules():
+        endpoint = rule.endpoint
+        if endpoint == 'static':
+            # the server does not have a static path, but  Flask automatically
+            # registers it. so we just ignore it.
+            continue
+
+        path = str(rule)
+        # methods = rule.methods
+        doc = app.view_functions[endpoint].__doc__
+
+        # make the doc a little more... pretty
+        summary = doc.split('\n\n')[0]
+        summary = ' '.join(line.strip() for line in summary.split('\n'))
+
+        routes.append([
+            path,
+            summary
+        ])
+
+    routes.sort(key=itemgetter(0))
+    return jsonify(status='OK', api=routes)
 
 
 # ----------------------------------------------------------------------
