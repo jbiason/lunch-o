@@ -11,3 +11,8 @@ lib-cov
 
 .venv
 .ropeproject
+.coverage
+coverage.xml
+doc/_build/**
+htmlcov/**
+nosetests.xml
