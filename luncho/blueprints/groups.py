@@ -9,8 +9,6 @@ from flask import Blueprint
 from flask import request
 from flask import jsonify
 
-from sqlalchemy.exc import IntegrityError
-
 from luncho.helpers import ForceJSON
 from luncho.helpers import user_from_token
 
@@ -34,7 +32,7 @@ class NewMaintainerDoesNotExistException(LunchoException):
     """The account for the new maintainer does not exist."""
     def __init__(self):
         super(NewMaintainerDoesNotExistException, self).__init__()
-        self.status = 401
+        self.status = 412
         self.message = 'New maintainer not found'
 
 
@@ -77,7 +75,7 @@ def create_group(token):
 
     json = request.get_json(force=True)
     new_group = Group(name=json['name'],
-                        owner=user.username)
+                      owner=user.username)
 
     LOG.debug('Current user groups: {groups}'.format(groups=user.groups))
     user.groups.append(new_group)
@@ -97,6 +95,9 @@ def update_group(token, groupId):
     group = Group.query.get(groupId)
     if not group:
         raise ElementNotFoundException('Group')
+
+    if not group.owner == user.username:
+        raise UserIsNotAdminException()
 
     LOG.debug('Group = {group}'.format(group=group))
 
