@@ -3,6 +3,8 @@
 
 """Helper functions."""
 
+import logging
+
 from functools import wraps
 
 from flask import request
@@ -14,6 +16,8 @@ from luncho.exceptions import InvalidTokenException
 from luncho.exceptions import MissingFieldsException
 from luncho.exceptions import UserNotFoundException
 from luncho.exceptions import AuthorizationRequiredException
+
+LOG = logging.getLogger('luncho.helpers')
 
 
 class ForceJSON(object):
@@ -41,24 +45,26 @@ class ForceJSON(object):
         return check_json
 
 
-class Auth(object):
-    """Validate the token in the Basic Auth header."""
+def auth(func):
+    @wraps(func)
+    def check_auth(*args, **kwargs):
+        if not request.authorization:
+            LOG.debug('There is no basic auth in the headers')
+            raise AuthorizationRequiredException
 
-    def __call__(self, func):
-        @wraps(func)
-        def check_auth(*args, **kwargs):
-            if not request.authorization:
-                raise AuthorizationRequiredException
+        token = request.authorization.username
+        user = User.query.filter_by(token=token).first()
+        if not user:
+            LOG.debug('No user with token {token}'.format(token=token))
+            raise UserNotFoundException()
 
-            token = request.authorization.username
-            user = User.query.filter_by(token=token).first()
-            if not user:
-                raise UserNotFoundException()
+        if not user.valid_token(token):
+            raise InvalidTokenException()
 
-            if not user.valid_token(token):
-                raise InvalidTokenException()
+        request.user = user
 
-            return func(*args, **kwargs)
+        return func(*args, **kwargs)
+    return check_auth
 
 
 def user_from_token(token):

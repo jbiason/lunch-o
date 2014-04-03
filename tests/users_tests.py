@@ -2,7 +2,6 @@
 # -*- encoding: utf-8 -*-
 
 import unittest
-import json
 
 from luncho import server
 
@@ -67,10 +66,10 @@ class TestExistingUsers(LunchoTests):
         """Update user details."""
         request = {'full_name': 'New User Name',
                    'password': 'newhash'}
-        rv = self.post('/user/{token}/'.format(token=self.user.token),
-                       request)
+        rv = self.post('/user/',
+                       request,
+                       self.user.token)
 
-        expected = {'status': 'OK'}
         self.assertJsonOk(rv)
 
         # check in the database
@@ -82,8 +81,9 @@ class TestExistingUsers(LunchoTests):
         """Send a request with an unexisting token."""
         request = {'full_name': 'New User Name',
                    'password': 'newhash'}
-        rv = self.post('/user/{token}/'.format(token='no-token'),
-                       request)
+        rv = self.post('/user/',
+                       request,
+                       'no-token')
 
         self.assertJsonError(rv, 404, 'User not found (via token)')
 
@@ -96,14 +96,15 @@ class TestExistingUsers(LunchoTests):
 
         request = {'full_name': 'New User Name',
                    'password': 'newhash'}
-        rv = self.post('/user/{token}/'.format(token=self.user.token),
-                       request)
+        rv = self.post('/user/',
+                       request,
+                       self.user.token)
 
         self.assertJsonError(rv, 400, 'Invalid token')
 
     def test_delete_user(self):
         """Delete a user."""
-        rv = self.delete('/user/{token}/'.format(token=self.user.token))
+        rv = self.delete('/user/', token=self.user.token)
         self.assertJsonOk(rv)
 
         # check the database
@@ -112,7 +113,7 @@ class TestExistingUsers(LunchoTests):
 
     def test_delete_wrong_token(self):
         """Send a delete to a non-existing token."""
-        rv = self.delete('/user/{token}/'.format(token='no-token'))
+        rv = self.delete('/user/', token='no-token')
 
         self.assertJsonError(rv, 404, 'User not found (via token)')
 
@@ -122,7 +123,7 @@ class TestExistingUsers(LunchoTests):
         self.user.token = 'expired'
         server.db.session.commit()
 
-        rv = self.delete('/user/{token}/'.format(token=self.user.token))
+        rv = self.delete('/user/', token=self.user.token)
 
         self.assertJsonError(rv, 400, 'Invalid token')
 

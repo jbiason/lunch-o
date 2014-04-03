@@ -3,8 +3,20 @@
 
 import unittest
 import json
+import base64
 
 from luncho import server
+
+
+def _token_header(token=None):
+    """Generate the headers required for using the token as an auth."""
+    if not token:
+        return None
+
+    message = '{token}:Ignored'.format(token=token)
+    headers = {'Authorization': 'Basic {code}'.format(
+        code=base64.b64encode(message))}
+    return headers
 
 
 class LunchoTests(unittest.TestCase):
@@ -75,22 +87,26 @@ class LunchoTests(unittest.TestCase):
     #  Easy way to convert the data to JSON and do requests
     # ------------------------------------------------------------
 
-    def post(self, url, data):
+    def post(self, url, data, token=None):
         """Send a POST request to the URL."""
         return self.app.post(url,
                              data=json.dumps(data),
+                             headers=_token_header(token),
                              content_type='application/json')
 
-    def put(self, url, data):
+    def put(self, url, data, token=None):
         """Send a PUT request to the URL."""
         return self.app.put(url,
                             data=json.dumps(data),
+                            headers=_token_header(token),
                             content_type='application/json')
 
-    def delete(self, url):
+    def delete(self, url, token=None):
         """Send a DELETE request to the URL. There is no data to be send."""
-        return self.app.delete(url)
+        return self.app.delete(url,
+                               headers=_token_header(token))
 
-    def get(self, url):
+    def get(self, url, token=None):
         """Send a GET request to the URL. There is no data to be send."""
-        return self.app.get(url)
+        return self.app.get(url,
+                            headers=_token_header(token))

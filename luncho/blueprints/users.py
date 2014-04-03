@@ -12,7 +12,7 @@ from flask import jsonify
 from sqlalchemy.exc import IntegrityError
 
 from luncho.helpers import ForceJSON
-from luncho.helpers import user_from_token
+from luncho.helpers import auth
 
 from luncho.server import User
 from luncho.server import db
@@ -53,15 +53,16 @@ def create_user():
     return jsonify(status='OK')
 
 
-@users.route('<token>/', methods=['POST'])
+@users.route('/', methods=['POST'])
 @ForceJSON()
-def update_user(token):
+@auth
+def update_user():
     """Update user information. Request can have the following fields:
     { "full_name": "Full name", "password": "hash" }
     Any other field will be ignored; only fields that need to be changed
     must be send."""
     json = request.get_json(force=True)
-    user = user_from_token(token)
+    user = request.user
 
     if 'full_name' in json:
         LOG.debug('Fullname = {fullname}'.format(fullname=json['full_name']))
@@ -75,10 +76,10 @@ def update_user(token):
     return jsonify(status='OK')
 
 
-@users.route('<token>/', methods=['DELETE'])
-def delete_user(token):
+@users.route('/', methods=['DELETE'])
+@auth
+def delete_user():
     """Delete a user. No confirmation is send."""
-    user = user_from_token(token)
-    db.session.delete(user)
+    db.session.delete(request.user)
     db.session.commit()
     return jsonify(status='OK')
