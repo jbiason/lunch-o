@@ -61,3 +61,11 @@ class ElementNotFoundException(LunchoException):
         super(ElementNotFoundException, self).__init__()
         self.status = 404
         self.message = '{element} not found'.format(element=element_name)
+
+
+class AuthorizationRequiredException(LunchoException):
+    """The request requires auhtorization."""
+    def __init__(self):
+        super(AuthorizationRequiredException, self).__init__()
+        self.status = 412
+        self.message = 'Request requires authorization'

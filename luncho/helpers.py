@@ -6,7 +6,6 @@
 from functools import wraps
 
 from flask import request
-from flask import jsonify
 
 from luncho.server import User
 
@@ -14,9 +13,11 @@ from luncho.exceptions import RequestMustBeJSONException
 from luncho.exceptions import InvalidTokenException
 from luncho.exceptions import MissingFieldsException
 from luncho.exceptions import UserNotFoundException
+from luncho.exceptions import AuthorizationRequiredException
 
 
 class ForceJSON(object):
+    """Decorator to check if the request is in JSON format."""
     def __init__(self, required=None):
         self.required = required or []
 
@@ -38,6 +39,26 @@ class ForceJSON(object):
 
             return func(*args, **kwargs)
         return check_json
+
+
+class Auth(object):
+    """Validate the token in the Basic Auth header."""
+
+    def __call__(self, func):
+        @wraps(func)
+        def check_auth(*args, **kwargs):
+            if not request.authorization:
+                raise AuthorizationRequiredException
+
+            token = request.authorization.username
+            user = User.query.filter_by(token=token).first()
+            if not user:
+                raise UserNotFoundException()
+
+            if not user.valid_token(token):
+                raise InvalidTokenException()
+
+            return func(*args, **kwargs)
 
 
 def user_from_token(token):
