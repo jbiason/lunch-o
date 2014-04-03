@@ -14,6 +14,10 @@ Request an access token. Almost all requests from here will require that a
 token is provided; this API will return the required token, which will
 identify the user in further requests.
 
+Once a token has been acquired, you must use it as a HTTP BasicAuth value:
+The token must be used in the username and the password will be ignored. All
+authenticated requests must authenticate the user in this form.
+
 ### Request a token [POST]
 
 + Request (application/json)
@@ -54,18 +58,17 @@ forbidden to create new groups. They can still vote, though.
 
         { "status": "ERROR", "error": "username already exists" }
         
-## Single User [/user/{token}/]
+## Single User [/user/]
+
+**Authenticated**
 
 Manage a single user.
 
-+ Parameters
-    + token ... The user token
-
 ### Update information [POST]
 
-Partial requests are valid (e.g., a request with a single "full\_name" -- and
-"token", obviously -- will update only the full\_name for that user; a password
-change will require only the "token" and "password" fields.
+Partial requests are valid (e.g., a request with a single "full\_name" will 
+update only the full\_name for that user; a password change will require only
+the "password"field.
 
 + Request (application/json)
 
@@ -104,6 +107,8 @@ User removal is only allowed to the user themselves or by a system admin.
 Places to have lunch.
 
 ## Places [/places/]
+
+**Authenticated**
 
 Retrieve the list of all places the user has access. This is directly tied
 to the Group management and will return all the places the user have access
@@ -210,11 +215,13 @@ ownership to another user, immediatelly.
 
 # Group Groups
 
+**Authenticated**
+
 Groups are used to combine a group of users and their favorite places. A location 
 will be considered "selected" when all users in that group have voted (or
 abstain in voting).
 
-## Groups [/groups/{token}/]
+## Groups [/groups/]
 
 Group management. Only users with verified accounts can create new groups. Once
 a group is created, the user becomes the "maintainer" of the group and only this
@@ -254,7 +261,9 @@ The user will become the maintainer of the group once it is created.
 
         { "status": "ERROR", "error": "Account not verified" }
 
-## Group management [/group/{token}/{groupId}/]
+## Group management [/group/{groupId}/]
+
+**Authenticated**
 
 Only the maintainer of the group can change the information for the group. As usual,
 only the required fields are necessary. Passing "maintainer" will change the
@@ -307,7 +316,12 @@ maintenance ownership to another user, immediatelly.
 
         { "status": "ERROR", "error": "Group not found" }
 
-## Adding other users to the group [/group/{token}/{groupId}/users/]
+## Adding other users to the group [/group/{groupId}/users/]
+
+**Authenticated**
+
+Manages the users in the group. The only user that can do these kind of
+changes is the owner of the group.
 
 ### Adding members [PUT]
 
@@ -332,7 +346,7 @@ maintenance ownership to another user, immediatelly.
         { "status": "ERROR", "error": "Group not found" }
 
 
-## Users in the group [/group/{token}/{groupId}/users/{username}/]
+## Users in the group [/group/{groupId}/users/{username}/]
 
 Manage users in the group. The user (token owner) must be the maintainer of the
 group.
@@ -364,14 +378,15 @@ group.
         { "status": "ERROR", "error": "User is not a member of this group" }
 
 
-## Places in the group [/group/{token}/{groupId}/places/]
+## Places in the group [/group/{groupId}/places/]
+
+**Authenticated**
 
 The places the group has already selected as their prefered/nearby places
 for lunching.
 
 + Parameters
     + groupId ... The group ID.
-    + token ... The user token.
 
 ### Retrieve the places for the group [GET]
 
@@ -420,6 +435,8 @@ for lunching.
 
 ## Managing places in the group [/group/{groupId}/places/{placeId}]
 
+**Authenticated**
+
 ### Removing a place [DELETE]
 
 + Request (application/json)
@@ -447,6 +464,8 @@ for lunching.
 User voting.
 
 ## Voting [/vote/{groupId}/]
+
+**Authenticated**
 
 Make a vote for the day (controlled by the server). The user must selected in
 which group they are voting, which will block voting in any other groups, unless
