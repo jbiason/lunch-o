@@ -58,13 +58,10 @@ forbidden to create new groups. They can still vote, though.
 
         { "status": "ERROR", "error": "username already exists" }
         
-## Single User [/user/]
-
-**Authenticated**
-
-Manage a single user.
 
 ### Update information [POST]
+
+**Authenticated**
 
 Partial requests are valid (e.g., a request with a single "full\_name" will 
 update only the full\_name for that user; a password change will require only
@@ -87,6 +84,8 @@ the "password"field.
         { "status": "ERROR", "error": "User not found (via token)"}
 
 ### Remove user [DELETE]
+
+**Authenticated**
 
 User removal is only allowed to the user themselves or by a system admin.
 
