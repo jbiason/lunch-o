@@ -35,8 +35,27 @@ class UsernameAlreadyExistsException(LunchoException):
 @users.route('', methods=['PUT'])
 @ForceJSON(required=['username', 'full_name', 'password'])
 def create_user():
-    """Create a new user. Request must be:
-    { "username": "username", "full_name": "Full Name", "password": "hash" }"""
+    """Create a new user.
+
+    **Example request**
+
+    .. sourcecode:: http
+
+       { "username": "username",
+         "full_name": "I'm a person",
+         "password": "MyPassword!" }
+
+    **Success (200)**:
+
+    .. sourcecode:: http
+
+       HTTP/1.1 200 OK
+       Content-Type: text/json
+
+       { "status": "OK" }
+
+    **User already exists (409)**: :py:class:`UsernameAlreadyExistsException`
+    """
     json = request.get_json(force=True)
 
     try:
@@ -53,14 +72,42 @@ def create_user():
     return jsonify(status='OK')
 
 
-@users.route('/', methods=['POST'])
+@users.route('', methods=['POST'])
 @ForceJSON()
 @auth
 def update_user():
-    """Update user information. Request can have the following fields:
-    { "full_name": "Full name", "password": "hash" }
-    Any other field will be ignored; only fields that need to be changed
-    must be send."""
+    """*Authenticated request* Update user information. Only the fields send
+    with be changed.
+
+    **Example request**
+
+    Change everything:
+
+    .. sourcecode:: http
+
+        { "full_name": "My New Full Name", "password": "newPassword" }
+
+    Change only the user password:
+
+    .. sourcecode:: http
+
+        { "password": "newPassowrd" }
+
+    **Succcess (200)**:
+
+    .. sourcecode:: http
+
+       HTTP/1.1 200 OK
+       Content-Type: text/json
+
+       { "status": "OK" }
+
+    **Request not in JSON format (400)**: :py:class:`RequestMustBeJSONException`
+
+    **User not found (via token) (404)**: :py:class:`UserNotFoundException`
+
+    **Authorization required (412)**: :py:class:`AuthorizationRequiredException`
+    """
     json = request.get_json(force=True)
     user = request.user
 
@@ -76,7 +123,7 @@ def update_user():
     return jsonify(status='OK')
 
 
-@users.route('/', methods=['DELETE'])
+@users.route('', methods=['DELETE'])
 @auth
 def delete_user():
     """Delete a user. No confirmation is send."""
