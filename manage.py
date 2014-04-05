@@ -12,8 +12,9 @@ manager = Manager(app)
 
 @manager.command
 def create_db():
-	"""Create the database."""
+    """Create the database."""
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
+    app.config.DEBUG = True
     manager.run()
