@@ -46,6 +46,11 @@ class ForceJSON(object):
 
 
 def auth(func):
+    """Decorator to make the request authenticated via token. If the token
+    is missing or it is invalid, the decorator will raise the proper
+    exceptions (and return the proper error codes). If the token is valid,
+    a "user" property will be added to the request object with the current
+    user."""
     @wraps(func)
     def check_auth(*args, **kwargs):
         if not request.authorization:

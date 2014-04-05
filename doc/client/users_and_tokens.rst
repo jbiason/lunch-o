@@ -10,7 +10,7 @@ should use this request to get a valid token:
 
 .. autoflask:: luncho.server:app
    :blueprints: token
-   :undoc-endpoints: static
+   :undoc-endpoints: static,show_api
 
 
 Users
@@ -18,4 +18,4 @@ Users
 
 .. autoflask:: luncho.server:app
    :blueprints: users
-   :undoc-endpoints: static
+   :undoc-endpoints: static,show_api

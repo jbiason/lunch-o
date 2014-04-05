@@ -19,7 +19,15 @@ from luncho.exceptions import LunchoException
 # ----------------------------------------------------------------------
 
 class UserDoesNotExistException(LunchoException):
-    """There is no such user in the database."""
+    """There is no such user in the database.
+
+    .. sourcecode:: http
+
+       HTTP/1.1 404 Not found
+       Content-Type: text/json
+
+       { "status": "ERROR", "message": "User does not exist" }
+    """
     def __init__(self):
         super(UserDoesNotExistException, self).__init__()
         self.status = 404
@@ -27,7 +35,15 @@ class UserDoesNotExistException(LunchoException):
 
 
 class InvalidPasswordException(LunchoException):
-    """Invalid password."""
+    """Invalid password.
+
+    .. sourcecode:: http
+
+       HTTP/1.1 401 Unauthorized
+       Content-Type: text/json
+
+       { "status": "ERROR", "message": "Invalid password" }
+    """
     def __init__(self):
         super(InvalidPasswordException, self).__init__()
         self.status = 401
@@ -62,23 +78,9 @@ def get_token():
 
        { "status": "OK", "token": "access_token" }
 
-    **Invalid password (401)**:
+    **Invalid password (401)**: :py:class:`InvalidPasswordException`
 
-    .. sourcecode:: http
-
-       HTTP/1.1 401 Unauthorized
-       Content-Type: text/json
-
-       { "status": "ERROR", "message": "Invalid password" }
-
-    **Unknown user (404)**:
-
-    .. sourcecode:: http
-
-       HTTP/1.1 404 Not found
-       Content-Type: text/json
-
-       { "status": "ERROR", "message": "User does not exist" }
+    **Unknown user (404)**: :py:class:`UserDoesNotExistException`
     """
     json = request.get_json(force=True)
 

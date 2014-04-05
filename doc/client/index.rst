@@ -67,9 +67,9 @@ All URLs must end with "/"; if you forget to add them in the URL, you'll
 receive a redirect to the path with "/".
 
 API
-----
+====
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    users_and_tokens
