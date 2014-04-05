@@ -102,11 +102,14 @@ def update_user():
 
        { "status": "OK" }
 
-    **Request not in JSON format (400)**: :py:class:`RequestMustBeJSONException`
+    **Request not in JSON format (400)**:
+        :py:class:`RequestMustBeJSONException`
 
-    **User not found (via token) (404)**: :py:class:`UserNotFoundException`
+    **User not found (via token) (404)**:
+        :py:class:`UserNotFoundException`
 
-    **Authorization required (412)**: :py:class:`AuthorizationRequiredException`
+    **Authorization required (412)**:
+        :py:class:`AuthorizationRequiredException`
     """
     json = request.get_json(force=True)
     user = request.user
@@ -126,7 +129,23 @@ def update_user():
 @users.route('', methods=['DELETE'])
 @auth
 def delete_user():
-    """Delete a user. No confirmation is send."""
+    """*Authenticated request* Delete a user.
+
+    **Success (200)**:
+
+    .. sourcecode:: http
+
+       HTTP/1.1 200 OK
+       Content-Type: text/json
+
+       { "status": "OK" }
+
+    **User not found (via token) (404)**:
+        :py:class:`UserNotFoundException`
+
+    **Authorization required (412)**:
+        :py:class:`AuthorizationRequiredException`
+    """
     db.session.delete(request.user)
     db.session.commit()
     return jsonify(status='OK')
