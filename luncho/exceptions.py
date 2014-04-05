@@ -23,7 +23,15 @@ class LunchoException(Exception):
 
 
 class RequestMustBeJSONException(LunchoException):
-    """The request is not a valid JSON."""
+    """The request is not a valid JSON.
+
+    ..sourcecode:: http
+
+       HTTP/1.1 400 Bad Request
+       Content-Type: text/json
+
+       { "status": "ERROR", "message": "Request MUST be in JSON format" }
+    """
     def __init__(self):
         super(RequestMustBeJSONException, self).__init__()
         self.status = 400
@@ -31,7 +39,17 @@ class RequestMustBeJSONException(LunchoException):
 
 
 class MissingFieldsException(LunchoException):
-    """There are missing fields in the request."""
+    """There are missing fields in the request.
+
+    ..sourcecode:: http
+
+       HTTP/1.1 400 Bad Request
+       Content-Type: text/json
+
+       { "status": "ERROR",
+         "message": "Missing fields",
+         "fields": [<list of missing fields>] }
+    """
     def __init__(self, fields):
         super(MissingFieldsException, self).__init__()
         self.status = 400
@@ -40,7 +58,15 @@ class MissingFieldsException(LunchoException):
 
 
 class InvalidTokenException(LunchoException):
-    """The passed token is invalid."""
+    """The passed token is invalid.
+
+    ..sourcecode:: http
+
+       HTTP/1.1 400 Bad REquest
+       Content-Type: text/json
+
+       { "status": "ERROR", "message": "Invalid token" }
+    """
     def __init__(self):
         super(InvalidTokenException, self).__init__()
         self.status = 400
@@ -48,7 +74,16 @@ class InvalidTokenException(LunchoException):
 
 
 class UserNotFoundException(LunchoException):
-    """There is no user with the token."""
+    """There is no user with the token.
+
+    ..sourccode:: http
+
+       HTTP/1.1 404 Not Found
+       Content-Type: text/json
+
+
+       { "status": "ERROR", "message": "User not found (via token)" }
+    """
     def __init__(self):
         super(UserNotFoundException, self).__init__()
         self.status = 404
@@ -56,7 +91,17 @@ class UserNotFoundException(LunchoException):
 
 
 class ElementNotFoundException(LunchoException):
-    """The requested element does not exist."""
+    """The requested element does not exist.
+
+    ..sourcecode:: http
+
+       HTTP/1.1 404 Not Found
+       Content-Type: text/json
+
+       { "status": "ERROR", "message": "{element} not found" }
+
+    **Note** {element} will change based on the type of request.
+    """
     def __init__(self, element_name):
         super(ElementNotFoundException, self).__init__()
         self.status = 404
@@ -64,8 +109,16 @@ class ElementNotFoundException(LunchoException):
 
 
 class AuthorizationRequiredException(LunchoException):
-    """The request requires auhtorization."""
+    """The request requires auhtorization.
+
+    ..sourcecode:: http
+
+       HTTP/1.1 401 Unauthorized
+       Content-Type: text/json
+
+       { "status": "ERROR": "message": "Request requires authorization" }
+    """
     def __init__(self):
         super(AuthorizationRequiredException, self).__init__()
-        self.status = 412
+        self.status = 401
         self.message = 'Request requires authorization'

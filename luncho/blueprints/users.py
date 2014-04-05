@@ -25,7 +25,15 @@ users = Blueprint('users', __name__)
 
 
 class UsernameAlreadyExistsException(LunchoException):
-    """The username is already taken."""
+    """The username is already taken.
+
+    ..sourcecode:: http
+
+       HTTP/1.1 409 Conflict
+       Content-Type: text/json
+
+       { "status": "ERROR", "message": "Username already exists" }
+    """
     def __init__(self):
         super(UsernameAlreadyExistsException, self).__init__()
         self.status = 409
