@@ -18,22 +18,7 @@ from luncho.server import db
 
 from luncho.exceptions import LunchoException
 from luncho.exceptions import ElementNotFoundException
-
-
-class AccountNotVerifiedException(LunchoException):
-    """The account isn't verified.
-
-    .. sourcecode:: http
-
-       HTTP/1.1 412 Precondition Failed
-       Content-Type: test/json
-
-       { "status": "ERROR", "message": "Account not verified" }
-    """
-    def __init__(self):
-        super(AccountNotVerifiedException, self).__init__()
-        self.status = 412
-        self.message = 'Account not verified'
+from luncho.exceptions import AccountNotVerifiedException
 
 
 class NewMaintainerDoesNotExistException(LunchoException):
