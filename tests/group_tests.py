@@ -215,5 +215,67 @@ class TestExistingGroups(LunchoTests):
                          token='invalid')
         self.assertJsonError(rv, 404, 'User not found (via token)')
 
+
+class TestUsersInGroup(LunchoTests):
+    """Tests for managing users in the group."""
+    def setUp(self):
+        super(TestUsersInGroup, self).setUp()
+        # create a user to have a token
+        self.user = User(username='test',
+                         fullname='Test User',
+                         passhash='hash')
+        self.user.verified = True
+        server.db.session.add(self.user)
+
+        # create a group for the user
+        self.group = Group(name='Test group',
+                           owner=self.user.username)
+        server.db.session.add(self.group)
+        server.db.session.commit()
+        self.user.get_token()
+
+    def tearDown(self):
+        super(TestUsersInGroup, self).tearDown()
+
+    def test_add_user(self):
+        """Try to add another user in the group."""
+        new_user = User(username='another_user',
+                        fullname='Another user',
+                        passhash='hash')
+        server.db.session.add(new_user)
+        server.db.session.commit()
+
+        request = {'usernames': [new_user.username]}
+
+        rv = self.put('/group/{groupId}/users/'.format(groupId=self.group.id),
+                      request,
+                      token=self.user.token)
+        self.assertJsonOk(rv)
+
+    def test_add_no_owner(self):
+        """Try to add users without being the group admin."""
+        new_user = User(username='another_user',
+                        fullname='Another user',
+                        passhash='hash')
+        server.db.session.add(new_user)
+        server.db.session.commit()
+        new_user.get_token()
+
+        request = {'usernames': [new_user.username]}
+
+        rv = self.put('/group/{groupId}/users/'.format(groupId=self.group.id),
+                      request,
+                      token=new_user.token)
+        self.assertJsonError(rv, 403, 'User is not admin')
+
+    def test_add_no_such_user(self):
+        """Try to add an unknown user to the group."""
+        request = {'usernames': ['unknown']}
+        rv = self.put('/group/{groupId}/users/'.format(groupId=self.group.id),
+                      request,
+                      token=self.user.token)
+        self.assertJsonError(rv, 404,
+                             'Some users in the add list do not exist')
+
 if __name__ == '__main__':
     unittest.main()

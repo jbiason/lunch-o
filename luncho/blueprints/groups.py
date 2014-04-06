@@ -68,6 +68,34 @@ class UserIsNotAdminException(LunchoException):
         self.message = 'User is not admin'
 
 
+class SomeUsersNotFoundException(LunchoException):
+    """Some users in the add list do not exist.
+
+    .. sourcecode:: http
+
+       HTTP/1.1 404 Not Found
+       Content-Type: text/json
+
+       { "status": "ERROR",
+         "message", "Some users in the add list do not exist",
+         "users": ["<username>", "<username>", ...]}
+    """
+    def __init__(self, users=None):
+        super(SomeUsersNotFoundException, self).__init__()
+        self.status = 404
+        self.message = 'Some users in the add list do not exist'
+        self.users = users
+
+    def response(self):
+        json = {'status': 'ERROR',
+                'message': self.message}
+        if self.users:
+            json['users'] = self.users
+        response = jsonify(json)
+        response.status_code = self.status
+        return response
+
+
 groups = Blueprint('groups', __name__)
 
 LOG = logging.getLogger('luncho.blueprints.groups')
@@ -254,5 +282,66 @@ def delete_group(groupId):
 
     db.session.delete(group)
     db.session.commit()
+
+    return jsonify(status='OK')
+
+
+@groups.route('<groupId>/users/', methods=['PUT'])
+@ForceJSON(required=['usernames'])
+@auth
+def add_users_to_group(groupId):
+    """*Authenticated request* Add users to the group. Only the group
+    administrator can add users to their groups.
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+        { "usernames": ["<username>", "<username>", ...] }
+
+    **Success (200)**:
+
+    .. sourcecode:: http
+
+       HTTP/1.1 200 OK
+       Content-Type: text/json
+
+       { "status": "OK" }
+
+    **Request not in JSON format (400)**:
+        :py:class:`RequestMustBeJSONException`
+
+    **User is not administrator of the group (403)**:
+        :py:class:`UserIsNotAdminException`
+
+    **User not found (via token) (404)**:
+        :py:class:`UserNotFoundException`
+
+    **Incomplete request, some users not found (404)**:
+        :py:class:`SomeUsersNotFoundException`
+
+    **Authorization required (412)**:
+        :py:class:`AuthorizationRequiredException`
+    """
+    user = request.user
+    group = Group.query.get(groupId)
+    if not group:
+        raise ElementNotFoundException('Group')
+
+    if not group.owner == user.username:
+        raise UserIsNotAdminException()
+
+    json = request.get_json(force=True)
+    unknown = []
+    for user in json['usernames']:
+        user_obj = User.query.get(user)
+        if not user_obj:
+            unknown.append(user)
+            continue
+
+        user_obj.groups.append(group)
+
+    if unknown:
+        raise SomeUsersNotFoundException(unknown)
 
     return jsonify(status='OK')
