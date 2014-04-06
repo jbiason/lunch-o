@@ -166,6 +166,15 @@ def create_group():
 
        { "name": "Name for the group" }
 
+    **Success (200)**:
+
+    .. sourcecode:: http
+
+        HTTP/1.1 200 OK
+        Content-Type: text/json
+
+        { "status": "OK", "id": <new group id> }
+
     **User not found (via token) (404)**:
         :py:class:`UserNotFoundException`
 
