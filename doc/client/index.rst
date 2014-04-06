@@ -73,3 +73,4 @@ API
    :maxdepth: 3
 
    users_and_tokens
+   groups
