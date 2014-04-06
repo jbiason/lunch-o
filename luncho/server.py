@@ -55,7 +55,7 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, nullable=False)
     groups = db.relationship('Group',
                              secondary=userGroups,
-                             backref=db.backref('groups', lazy='dynamic'))
+                             backref=db.backref('users', lazy='dynamic'))
 
     def __init__(self, username, fullname, passhash, token=None,
                  issued_date=None, verified=False):

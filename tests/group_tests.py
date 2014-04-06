@@ -3,6 +3,8 @@
 
 import unittest
 
+from json import loads
+
 from luncho import server
 
 from luncho.server import User
@@ -231,6 +233,8 @@ class TestUsersInGroup(LunchoTests):
         self.group = Group(name='Test group',
                            owner=self.user.username)
         server.db.session.add(self.group)
+
+        self.user.groups.append(self.group)
         server.db.session.commit()
         self.user.get_token()
 
@@ -286,6 +290,50 @@ class TestUsersInGroup(LunchoTests):
                       request,
                       token=self.user.token)
         self.assertJsonError(rv, 404, 'Group not found')
+
+    def test_get_members(self):
+        """Try to get a list of group members."""
+        rv = self.get('/group/{groupId}/users/'.format(groupId=self.group.id),
+                      token=self.user.token)
+        self.assertJsonOk(rv)
+        json = loads(rv.data)
+        self.assertTrue('users' in json)
+        self.assertEqual(len(json['users']), 1)     # just the owner
+        self.assertEqual(json['users'][0]['username'],
+                         self.user.username)
+        self.assertEqual(json['users'][0]['full_name'],
+                         self.user.fullname)
+
+    def test_get_members_by_member(self):
+        """Non admin user requests the list of group members."""
+        new_user = User(username='another_user',
+                        fullname='Another user',
+                        passhash='hash')
+        server.db.session.add(new_user)
+        new_user.groups.append(self.group)
+        server.db.session.commit()
+        new_user.get_token()
+
+        rv = self.get('/group/{groupId}/users/'.format(groupId=self.group.id),
+                      token=new_user.token)
+        self.assertJsonOk(rv)
+
+        json = loads(rv.data)
+        self.assertTrue('users' in json)
+        self.assertEqual(len(json['users']), 2)     # owner and new user
+
+    def test_get_members_by_non_member(self):
+        """A user that is not part of the group ask for members."""
+        new_user = User(username='another_user',
+                        fullname='Another user',
+                        passhash='hash')
+        server.db.session.add(new_user)
+        server.db.session.commit()
+        new_user.get_token()
+
+        rv = self.get('/group/{groupId}/users/'.format(groupId=self.group.id),
+                      token=new_user.token)
+        self.assertJsonError(rv, 403, 'User is not member of this group')
 
 if __name__ == '__main__':
     unittest.main()

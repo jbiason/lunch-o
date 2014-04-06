@@ -68,6 +68,22 @@ class UserIsNotAdminException(LunchoException):
         self.message = 'User is not admin'
 
 
+class UserIsNotMemberException(LunchoException):
+    """The user is not the admin of the group.
+
+    .. sourcecode:: http
+
+       HTTP/1.1 403 Forbidden
+       Content-Type: test/json
+
+       { "status": "ERROR", "message": "User is not member of this group" }
+    """
+    def __init__(self):
+        super(UserIsNotMemberException, self).__init__()
+        self.status = 403
+        self.message = 'User is not member of this group'
+
+
 class SomeUsersNotFoundException(LunchoException):
     """Some users in the add list do not exist.
 
@@ -345,3 +361,50 @@ def add_users_to_group(groupId):
         raise SomeUsersNotFoundException(unknown)
 
     return jsonify(status='OK')
+
+
+@groups.route('<groupId>/users/', methods=['GET'])
+@auth
+def list_group_members(groupId):
+    """*Authenticated request* Return a list of the users in the group. The
+    user must be part of the group to request this list.
+
+    **Success (200)**:
+
+    .. sourcecode:: http
+
+       HTTP/1.1 200 OK
+       Content-Type: text/json
+
+       { "status": "OK", "users": [ { "username": "<username>",
+                                      "full_name": "<full name>"},
+                                      ...] }
+
+    **User is not member of the group (403)**:
+        :py:class:`UserIsNotMemberException`
+
+    **User not found (via token) (404)**:
+        :py:class:`UserNotFoundException`
+
+    **Incomplete request, some users not found (404)**:
+        :py:class:`SomeUsersNotFoundException`
+
+    **Authorization required (412)**:
+        :py:class:`AuthorizationRequiredException`
+    """
+    user = request.user
+    group = Group.query.get(groupId)
+    if not group:
+        raise ElementNotFoundException('Group')
+
+    LOG.debug('user groups: {groups}'.format(groups=user.groups))
+
+    if not group in user.groups:
+        raise UserIsNotMemberException()
+
+    users = []
+    for user in group.users:
+        users.append({'username': user.username,
+                      'full_name': user.fullname})
+
+    return jsonify(status='OK', users=users)
