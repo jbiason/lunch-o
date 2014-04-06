@@ -10,7 +10,7 @@ from flask import request
 from flask import jsonify
 
 from luncho.helpers import ForceJSON
-from luncho.helpers import user_from_token
+from luncho.helpers import auth
 
 from luncho.server import User
 from luncho.server import Group
@@ -21,7 +21,15 @@ from luncho.exceptions import ElementNotFoundException
 
 
 class AccountNotVerifiedException(LunchoException):
-    """The account isn't verified."""
+    """The account isn't verified.
+
+    .. sourcecode:: http
+
+       HTTP/1.1 412 Precondition Failed
+       Content-Type: test/json
+
+       { "status": "ERROR", "message": "Account not verified" }
+    """
     def __init__(self):
         super(AccountNotVerifiedException, self).__init__()
         self.status = 412
@@ -29,18 +37,34 @@ class AccountNotVerifiedException(LunchoException):
 
 
 class NewMaintainerDoesNotExistException(LunchoException):
-    """The account for the new maintainer does not exist."""
+    """The account for the new admin does not exist.
+
+    .. sourcecode:: http
+
+       HTTP/1.1 404 Not found
+       Content-Type: test/json
+
+       { "status": "ERROR", "message": "New admin not found" }
+    """
     def __init__(self):
         super(NewMaintainerDoesNotExistException, self).__init__()
-        self.status = 412
-        self.message = 'New maintainer not found'
+        self.status = 404
+        self.message = 'New admin not found'
 
 
 class UserIsNotAdminException(LunchoException):
-    """The user is not the admin of the group."""
+    """The user is not the admin of the group.
+
+    .. sourcecode:: http
+
+       HTTP/1.1 403 Forbidden
+       Content-Type: test/json
+
+       { "status": "ERROR", "message": "User is not admin" }
+    """
     def __init__(self):
         super(UserIsNotAdminException, self).__init__()
-        self.status = 401
+        self.status = 403
         self.message = 'User is not admin'
 
 
@@ -49,10 +73,32 @@ groups = Blueprint('groups', __name__)
 LOG = logging.getLogger('luncho.blueprints.groups')
 
 
-@groups.route('<token>/', methods=['GET'])
-def user_groups(token):
-    """Return a list of the groups the user belongs or it's the owner."""
-    user = user_from_token(token)
+@groups.route('', methods=['GET'])
+@auth
+def user_groups():
+    """*Authenticated request* Return a list of the groups the user belongs or
+    it's the owner.
+
+    **Success (200)**:
+
+    .. sourcecode:: http
+
+       HTTP/1.1 200 OK
+       Content-Type: text/json
+
+       { "status": "OK", "groups": [ { "id": "<group id>" ,
+                                       "name": "<group name>",
+                                       "admin": <true if the user is admin>},
+                                       ...] }
+
+    **User not found (via token) (404)**:
+        :py:class:`UserNotFoundException`
+
+    **Authorization required (412)**:
+        :py:class:`AuthorizationRequiredException`
+
+    """
+    user = request.user
     groups = {}
     for group in user.groups:
         groups[group.id] = {'id': group.id,
@@ -63,11 +109,30 @@ def user_groups(token):
                    groups=groups.values())
 
 
-@groups.route('<token>/', methods=['PUT'])
+@groups.route('', methods=['PUT'])
 @ForceJSON(required=['name'])
-def create_group(token):
-    """Create a new group belonging to the user."""
-    user = user_from_token(token)
+@auth
+def create_group():
+    """*Authenticated request* Create a new group. Once the group is created,
+    the user becomes the administrator of the group.
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+       { "name": "Name for the group" }
+
+    **User not found (via token) (404)**:
+        :py:class:`UserNotFoundException`
+
+    **Authorization required (412)**:
+        :py:class:`AuthorizationRequiredException`
+
+    **Account not verified (412)**:
+        :py:class:`AccountNotVerifiedException`
+
+    """
+    user = request.user
     LOG.debug('User status: {verified}'.format(verified=user.verified))
 
     if not user.verified:
@@ -87,11 +152,48 @@ def create_group(token):
                    id=new_group.id)
 
 
-@groups.route('<token>/<groupId>/', methods=['POST'])
+@groups.route('<groupId>/', methods=['POST'])
 @ForceJSON()
-def update_group(token, groupId):
-    """Update group information."""
-    user = user_from_token(token)
+@auth
+def update_group(groupId):
+    """*Authenticated request* Update group information. The user must be
+    the administrator of the group to change any information. Partial requests
+    are accepted and missing fields are not changed.
+
+    The administrator of the group can be changed by sending the
+    "admin" field with the username of the new administrator.
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+       { "name": "new group name": "admin": "newAdmin"}
+
+    **Success (200)**:
+
+    .. sourcecode:: http
+
+       HTTP/1.1 200 OK
+       Content-Type: text/json
+
+       { "status": "OK" }
+
+    **Request not in JSON format (400)**:
+        :py:class:`RequestMustBeJSONException`
+
+    **User is not administrator of the group (403)**:
+        :py:class:`UserIsNotAdminException`
+
+    **User not found (via token) (404)**:
+        :py:class:`UserNotFoundException`
+
+    **The new admin does not exist (404)**:
+        :py:class:`NewMaintainerDoesNotExistException`
+
+    **Authorization required (412)**:
+        :py:class:`AuthorizationRequiredException`
+    """
+    user = request.user
     group = Group.query.get(groupId)
     if not group:
         raise ElementNotFoundException('Group')
@@ -105,21 +207,44 @@ def update_group(token, groupId):
     if 'name' in json:
         group.name = json['name']
 
-    if 'maintainer' in json:
-        new_maintainer = User.query.get(json['maintainer'])
+    if 'admin' in json:
+        new_maintainer = User.query.get(json['admin'])
         if not new_maintainer:
             raise NewMaintainerDoesNotExistException()
 
         group.owner = new_maintainer.username
+        LOG.debug("new owner of {group} = {new_maintainer}".format(
+            group=group, new_maintainer=new_maintainer))
 
     db.session.commit()
     return jsonify(status='OK')
 
 
-@groups.route('<token>/<groupId>/', methods=['DELETE'])
-def delete_group(token, groupId):
-    """Delete a group."""
-    user = user_from_token(token)
+@groups.route('<groupId>/', methods=['DELETE'])
+@auth
+def delete_group(groupId):
+    """*Authenticated request* Delete a group. Only the administrator of the
+    group can delete it.
+
+    **Success (200)**:
+
+    .. sourcecode:: http
+
+       HTTP/1.1 200 OK
+       Content-Type: text/json
+
+       { "status": "OK" }
+
+    **User is not administrator of the group (403)**:
+        :py:class:`UserIsNotAdminException`
+
+    **User not found (via token) (404)**:
+        :py:class:`UserNotFoundException`
+
+    **Authorization required (412)**:
+        :py:class:`AuthorizationRequiredException`
+    """
+    user = request.user
     group = Group.query.get(groupId)
     if not group:
         raise ElementNotFoundException('Group')
