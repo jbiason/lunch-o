@@ -322,6 +322,28 @@ maintenance ownership to another user, immediatelly.
 Manages the users in the group. The only user that can do these kind of
 changes is the owner of the group.
 
+### Get a list of members [GET]
+
+**Authenticated**
+
++ Responde 200 (application/json)
+
+		{ "status": "OK", "users": [ { "username": "<username>",
+		                               "full_name": "<full name>"},
+									   ... ] }
+
++ Response 400 (application/json)
+
+        { "status": "ERROR", "error": "Invalid token" }
+
++ Response 401 (application/json)
+
+        { "status": "ERROR", "error": "User is not admin" }
+
++ Response 404 (application/json)
+
+        { "status": "ERROR", "error": "Group not found" }
+
 ### Adding members [PUT]
 
 + Request (application/json)

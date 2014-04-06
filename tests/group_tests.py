@@ -277,5 +277,15 @@ class TestUsersInGroup(LunchoTests):
         self.assertJsonError(rv, 404,
                              'Some users in the add list do not exist')
 
+    def test_add_unknown_group(self):
+        """Try to add users to some unknown group."""
+        request = {'usernames': ['unkonwn']}    # group not found should
+                                                # kick first
+        groupId = self.group.id + 10
+        rv = self.put('/group/{groupId}/users/'.format(groupId=groupId),
+                      request,
+                      token=self.user.token)
+        self.assertJsonError(rv, 404, 'Group not found')
+
 if __name__ == '__main__':
     unittest.main()
