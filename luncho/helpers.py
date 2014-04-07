@@ -41,6 +41,7 @@ class ForceJSON(object):
             if missing:
                 raise MissingFieldsException(missing)
 
+            request.as_json = json     # replace with a forced json
             return func(*args, **kwargs)
         return check_json
 
@@ -70,23 +71,3 @@ def auth(func):
 
         return func(*args, **kwargs)
     return check_auth
-
-
-def user_from_token(token):
-    """Returns a tuple with the user that owns the token and the error. If the
-    token is valid, user will have the user object and error will be None; if
-    there is something wrong with the token, the user will be None and the
-    error will have a Response created with :py:func:`JSONError`.
-
-    :param token: The token received
-    :type token: str
-
-    :return: Tuple with the user and the error."""
-    user = User.query.filter_by(token=token).first()
-    if not user:
-        raise UserNotFoundException()
-
-    if not user.valid_token(token):
-        raise InvalidTokenException()
-
-    return user
