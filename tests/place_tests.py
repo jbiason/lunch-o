@@ -45,6 +45,18 @@ class TestPlaces(LunchoTests):
         self.assertTrue('places' in json)
         self.assertEqual(len(json['places']), 1)    # just the new place
 
+    def test_create_place_not_verified(self):
+        """Try to create a place with an unverified account."""
+        request = {'name': 'New place'}
+        new_user = self.create_user(name='new_user',
+                                    fullname='new user',
+                                    passhash='passhash',
+                                    verified=False)
+        rv = self.post('/place/',
+                       request,
+                       token=new_user.token)
+        self.assertJsonError(rv, 412, 'Account not verified')
+
 
 class TestExistingPlaces(LunchoTests):
     """Tests for existing places."""
@@ -86,11 +98,60 @@ class TestExistingPlaces(LunchoTests):
         place = Place.query.get(placeId)
         self.assertEqual(place.owner, 'newUser')
 
+    def test_update_unknown_place(self):
+        """Try to update a place that doesn't exist."""
+        placeId = self.place.id + 10
+        request = {'name': 'new name'}
+        rv = self.put('/place/{placeId}/'.format(placeId=placeId),
+                      request,
+                      token=self.user.token)
+        self.assertJsonError(rv, 404, 'Place not found')
+
+    def test_update_non_admin(self):
+        """A non-admin user tries to update the place."""
+        new_user = self.create_user(name='newUser',
+                                    fullname='New user',
+                                    passhash='hash',
+                                    verified=True,
+                                    create_token=True)
+        placeId = self.place.id
+        request = {'name': 'new name'}
+        rv = self.put('/place/{placeId}/'.format(placeId=placeId),
+                      request,
+                      token=new_user.token)
+        self.assertJsonError(rv, 403, 'User is not admin')
+
+    def test_change_non_existent_admin(self):
+        """Try to transfer the admin to a user that doesn't exist."""
+        request = {'admin': 'unknown'}
+        rv = self.put('/place/{placeId}/'.format(placeId=self.place.id),
+                      request,
+                      token=self.user.token)
+        self.assertJsonError(rv, 404, 'New admin not found')
+
     def test_delete_place(self):
         """Delete a place."""
         rv = self.delete('/place/{placeId}/'.format(placeId=self.place.id),
                          token=self.user.token)
         self.assertJsonOk(rv)
+
+    def test_delete_non_existent_place(self):
+        """Try to delete a place that doesn't exist."""
+        placeId = self.place.id + 10
+        rv = self.delete('/place/{placeId}/'.format(placeId=placeId),
+                         token=self.user.token)
+        self.assertJsonError(rv, 404, 'Place not found')
+
+    def test_delete_non_admin(self):
+        """Try to delete the place by a non-admin user."""
+        new_user = self.create_user(name='newUser',
+                                    fullname='New user',
+                                    passhash='hash',
+                                    verified=True,
+                                    create_token=True)
+        rv = self.delete('/place/{placeId}/'.format(placeId=self.place.id),
+                         token=new_user.token)
+        self.assertJsonError(rv, 403, 'User is not admin')
 
 
 if __name__ == '__main__':
