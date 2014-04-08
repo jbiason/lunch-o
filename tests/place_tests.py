@@ -51,7 +51,8 @@ class TestPlaces(LunchoTests):
         new_user = self.create_user(name='new_user',
                                     fullname='new user',
                                     passhash='passhash',
-                                    verified=False)
+                                    verified=False,
+                                    create_token=True)
         rv = self.post('/place/',
                        request,
                        token=new_user.token)
