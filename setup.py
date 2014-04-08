@@ -13,6 +13,7 @@ setup(name='luncho',
       author_email='julio.biason@gmail.com',
       url='https://github.com/jbiason/lunch-o',
       packages=find_packages(),
+      install_requires=file('requirements.txt').readlines(),
       classifiers=[
           'Development Status :: 3 - Alpha',
           'Environment :: Web Environment',
