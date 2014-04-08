@@ -7,6 +7,8 @@ import base64
 
 from luncho import server
 
+from luncho.server import User
+
 
 def _token_header(token=None):
     """Generate the headers required for using the token as an auth."""
@@ -32,9 +34,44 @@ class LunchoTests(unittest.TestCase):
 
         self.app = server.app.test_client()
         server.db.create_all()
+        return
 
     def tearDown(self):
+        if hasattr(self, 'user'):
+            server.db.session.delete(self.user)
+            server.db.session.commit()
         server.db.drop_all(bind=None)
+        return
+
+    # ------------------------------------------------------------
+    #  Common data
+    # ------------------------------------------------------------
+    def create_user(self, name='test', fullname='Test User', passhash='hash',
+                    verified=True, create_token=False):
+        """Add a user.
+
+        :param name: The name for the user
+        :param fullname: The full name of the user
+        :param passhash: The user passhash
+
+        :return: The user
+        :rtype: :py:class:`server.User`"""
+        user = User(username=name,
+                    fullname=fullname,
+                    passhash=passhash)
+        user.verified = verified
+        server.db.session.add(user)
+        server.db.session.commit()
+
+        if create_token:
+            user.get_token()
+        return user
+
+    def default_user(self):
+        """Add the default user in the database; it will be stored in 'self'
+        for access."""
+        self.user = self.create_user(create_token=True)
+        return
 
     # ------------------------------------------------------------
     #  Common assertions for lunch-o
@@ -59,10 +96,12 @@ class LunchoTests(unittest.TestCase):
                               key=key,
                               expected=expected[key],
                               response=response[key]))
+        return
 
     def assertStatusCode(self, response, status):
         """Check the status code of the response."""
         self.assertEqual(response.status_code, status)
+        return
 
     def assertJsonOk(self, response, **extras):
         """Assert the the response is an OK. Extra fields can be expected
@@ -72,6 +111,7 @@ class LunchoTests(unittest.TestCase):
             expected.update(extras)
         self.assertStatusCode(response, 200)
         self.assertJson(response, expected)
+        return
 
     def assertJsonError(self, response, status, message, **extras):
         """Assert that the response is an error. Extra fields returned in
@@ -82,6 +122,7 @@ class LunchoTests(unittest.TestCase):
 
         self.assertStatusCode(response, status)
         self.assertJson(response, expected)
+        return
 
     # ------------------------------------------------------------
     #  Easy way to convert the data to JSON and do requests

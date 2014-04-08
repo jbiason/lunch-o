@@ -104,7 +104,7 @@ class Group(db.Model):
 
     def __init__(self, name, owner):
         self.name = name
-        self.owner = owner
+        self.owner = owner.username
 
     def __repr__(self):
         return 'Group {id}-{name}-{owner}'.format(id=self.id,
@@ -119,7 +119,7 @@ class Place(db.Model):
 
     def __init__(self, name, owner=None):
         self.name = name
-        self.owner = owner
+        self.owner = owner.username
 
 # ----------------------------------------------------------------------
 #  Blueprints

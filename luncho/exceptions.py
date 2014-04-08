@@ -138,3 +138,35 @@ class AccountNotVerifiedException(LunchoException):
         super(AccountNotVerifiedException, self).__init__()
         self.status = 412
         self.message = 'Account not verified'
+
+
+class NewMaintainerDoesNotExistException(LunchoException):
+    """The account for the new admin does not exist.
+
+    .. sourcecode:: http
+
+       HTTP/1.1 404 Not found
+       Content-Type: test/json
+
+       { "status": "ERROR", "message": "New admin not found" }
+    """
+    def __init__(self):
+        super(NewMaintainerDoesNotExistException, self).__init__()
+        self.status = 404
+        self.message = 'New admin not found'
+
+
+class UserIsNotAdminException(LunchoException):
+    """The user is not the admin of the group.
+
+    .. sourcecode:: http
+
+       HTTP/1.1 403 Forbidden
+       Content-Type: test/json
+
+       { "status": "ERROR", "message": "User is not admin" }
+    """
+    def __init__(self):
+        super(UserIsNotAdminException, self).__init__()
+        self.status = 403
+        self.message = 'User is not admin'

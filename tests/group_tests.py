@@ -106,7 +106,7 @@ class TestExistingGroups(LunchoTests):
 
         # create a group for the user
         self.group = Group(name='Test group',
-                           owner=self.user.username)
+                           owner=self.user)
         server.db.session.add(self.group)
         server.db.session.commit()
         self.user.get_token()
@@ -231,7 +231,7 @@ class TestUsersInGroup(LunchoTests):
 
         # create a group for the user
         self.group = Group(name='Test group',
-                           owner=self.user.username)
+                           owner=self.user)
         server.db.session.add(self.group)
 
         self.user.groups.append(self.group)
