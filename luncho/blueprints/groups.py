@@ -75,27 +75,29 @@ LOG = logging.getLogger('luncho.blueprints.groups')
 @groups.route('', methods=['GET'])
 @auth
 def user_groups():
-    """*Authenticated request* Return a list of the groups the user belongs or
-    it's the owner.
+    """*Authenticated request*
 
-    **Success (200)**:
+    Return a list of the groups the user belongs or it's the owner.
 
-    .. sourcecode:: http
+    :header Authorization: Access token from `/token/`.
 
-       HTTP/1.1 200 OK
-       Content-Type: text/json
+    :status 200: Success
 
-       { "status": "OK", "groups": [ { "id": "<group id>" ,
-                                       "name": "<group name>",
-                                       "admin": <true if the user is admin>},
-                                       ...] }
+        .. sourcecode:: http
 
-    **User not found (via token) (404)**:
-        :py:class:`UserNotFoundException`
+            HTTP/1.1 200 OK
+            Content-Type: text/json
 
-    **Authorization required (412)**:
-        :py:class:`AuthorizationRequiredException`
+            { "status": "OK", "groups": [ { "id": "<group id>" ,
+                                            "name": "<group name>",
+                                            "admin": <true if the user is
+                                                admin>},
+                                            ...] }
 
+    :status 404: User not found (via token)
+        (:py:class:`UserNotFoundException`)
+    :status 412: Authorization required
+        (:py:class:`AuthorizationRequiredException`)
     """
     user = request.user
     groups = {}
@@ -108,12 +110,14 @@ def user_groups():
                    groups=groups.values())
 
 
-@groups.route('', methods=['PUT'])
+@groups.route('', methods=['POST'])
 @ForceJSON(required=['name'])
 @auth
 def create_group():
-    """*Authenticated request* Create a new group. Once the group is created,
-    the user becomes the administrator of the group.
+    """*Authenticated request*
+
+    Create a new group. Once the group is created, the user becomes the
+    administrator of the group.
 
     **Example request**:
 
@@ -121,24 +125,23 @@ def create_group():
 
        { "name": "Name for the group" }
 
-    **Success (200)**:
+    :header Authorization: Access token from `/token/`.
 
-    .. sourcecode:: http
+    :status 200: Success
 
-        HTTP/1.1 200 OK
-        Content-Type: text/json
+        .. sourcecode:: http
 
-        { "status": "OK", "id": <new group id> }
+            HTTP/1.1 200 OK
+            Content-Type: text/json
 
-    **User not found (via token) (404)**:
-        :py:class:`UserNotFoundException`
+            { "status": "OK", "id": <new group id> }
 
-    **Authorization required (412)**:
-        :py:class:`AuthorizationRequiredException`
-
-    **Account not verified (412)**:
-        :py:class:`AccountNotVerifiedException`
-
+    :status 404: User not found (via token)
+        (:py:class:`UserNotFoundException`)
+    :status 412: Authorization required
+        (:py:class:`AuthorizationRequiredException`)
+    :status 412: Account not verified
+        (:py:class:`AccountNotVerifiedException`)
     """
     user = request.user
     LOG.debug('User status: {verified}'.format(verified=user.verified))
@@ -160,13 +163,15 @@ def create_group():
                    id=new_group.id)
 
 
-@groups.route('<groupId>/', methods=['POST'])
+@groups.route('<groupId>/', methods=['PUT'])
 @ForceJSON()
 @auth
 def update_group(groupId):
-    """*Authenticated request* Update group information. The user must be
-    the administrator of the group to change any information. Partial requests
-    are accepted and missing fields are not changed.
+    """*Authenticated request*
+
+    Update group information. The user must be the administrator of the group
+    to change any information. Partial requests are accepted and missing
+    fields are not changed.
 
     The administrator of the group can be changed by sending the
     "admin" field with the username of the new administrator.
@@ -177,29 +182,19 @@ def update_group(groupId):
 
        { "name": "new group name": "admin": "newAdmin"}
 
-    **Success (200)**:
+    :header Authorization: Access token from `/token/`.
 
-    .. sourcecode:: http
-
-       HTTP/1.1 200 OK
-       Content-Type: text/json
-
-       { "status": "OK" }
-
-    **Request not in JSON format (400)**:
-        :py:class:`RequestMustBeJSONException`
-
-    **User is not administrator of the group (403)**:
-        :py:class:`UserIsNotAdminException`
-
-    **User not found (via token) (404)**:
-        :py:class:`UserNotFoundException`
-
-    **The new admin does not exist (404)**:
-        :py:class:`NewMaintainerDoesNotExistException`
-
-    **Authorization required (412)**:
-        :py:class:`AuthorizationRequiredException`
+    :status 200: Success
+    :status 400: Request not in JSON format
+        (:py:class:`RequestMustBeJSONException`)
+    :status 403: User is not the group administrator
+        (:py:class:`UserIsNotAdminException`)
+    :status 404: User not found (via token)
+        (:py:class:`UserNotFoundException`)
+    :status 404: New administrator does not exist
+        (:py:class:`NewMaintainerDoesNotExistException`)
+    :status 412: Authorization required
+        (:py:class:`AuthorizationRequiredException`)
     """
     user = request.user
     group = Group.query.get(groupId)
@@ -231,26 +226,21 @@ def update_group(groupId):
 @groups.route('<groupId>/', methods=['DELETE'])
 @auth
 def delete_group(groupId):
-    """*Authenticated request* Delete a group. Only the administrator of the
-    group can delete it.
+    """*Authenticated request*
 
-    **Success (200)**:
+    Delete a group. Only the administrator of the group can delete it.
 
-    .. sourcecode:: http
+    :param groupId: The group Id
 
-       HTTP/1.1 200 OK
-       Content-Type: text/json
+    :header Authorization: Access token from `/token/`.
 
-       { "status": "OK" }
-
-    **User is not administrator of the group (403)**:
-        :py:class:`UserIsNotAdminException`
-
-    **User not found (via token) (404)**:
-        :py:class:`UserNotFoundException`
-
-    **Authorization required (412)**:
-        :py:class:`AuthorizationRequiredException`
+    :status 200: Success
+    :status 403: User is not the group administrator
+        (:py:class:`UserIsNotAdminException`)
+    :status 404: User not found (via token)
+        (:py:class:`UserNotFoundException`)
+    :status 412: Authorization required
+        (:py:class:`AuthorizationRequiredException`)
     """
     user = request.user
     group = Group.query.get(groupId)
@@ -270,8 +260,12 @@ def delete_group(groupId):
 @ForceJSON(required=['usernames'])
 @auth
 def add_users_to_group(groupId):
-    """*Authenticated request* Add users to the group. Only the group
-    administrator can add users to their groups.
+    """*Authenticated request*
+
+    Add users to the group. Only the group administrator can add users to
+    their groups.
+
+    :param groupId: The group Id
 
     **Example request**:
 
@@ -279,29 +273,20 @@ def add_users_to_group(groupId):
 
         { "usernames": ["<username>", "<username>", ...] }
 
-    **Success (200)**:
+    :header Authorization: Access token from `/token/`.
 
-    .. sourcecode:: http
-
-       HTTP/1.1 200 OK
-       Content-Type: text/json
-
-       { "status": "OK" }
-
-    **Request not in JSON format (400)**:
-        :py:class:`RequestMustBeJSONException`
-
-    **User is not administrator of the group (403)**:
-        :py:class:`UserIsNotAdminException`
-
-    **User not found (via token) (404)**:
-        :py:class:`UserNotFoundException`
-
-    **Incomplete request, some users not found (404)**:
-        :py:class:`SomeUsersNotFoundException`
-
-    **Authorization required (412)**:
-        :py:class:`AuthorizationRequiredException`
+    :status 200: Success
+    :status 400: Request not in JSON format
+        (:py:class:`RequestMustBeJSONException`)
+    :status 403: User is not the group administrator
+        (:py:class:`UserIsNotAdminException`)
+    :status 404: User not found (via token)
+        (:py:class:`UserNotFoundException`)
+    :status 404: Incomplete request, some users not found; users that couldn't
+        be found will return in the "missing" field.
+        (:py:class:`SomeUsersNotFoundException`)
+    :status 412: Authorization required
+        (:py:class:`AuthorizationRequiredException`)
     """
     user = request.user
     group = Group.query.get(groupId)
@@ -330,31 +315,32 @@ def add_users_to_group(groupId):
 @groups.route('<groupId>/users/', methods=['GET'])
 @auth
 def list_group_members(groupId):
-    """*Authenticated request* Return a list of the users in the group. The
-    user must be part of the group to request this list.
+    """*Authenticated request*
 
-    **Success (200)**:
+    Return a list of the users in the group. The user must be part of the
+    group to request this list.
 
-    .. sourcecode:: http
+    :parma groupId: The group Id
 
-       HTTP/1.1 200 OK
-       Content-Type: text/json
+    :header Authorization: Access token from `/token/`.
 
-       { "status": "OK", "users": [ { "username": "<username>",
-                                      "full_name": "<full name>"},
-                                      ...] }
+    :status 200: Success
 
-    **User is not member of the group (403)**:
-        :py:class:`UserIsNotMemberException`
+        .. sourcecode:: http
 
-    **User not found (via token) (404)**:
-        :py:class:`UserNotFoundException`
+            HTTP/1.1 200 OK
+            Content-Type: text/json
 
-    **Incomplete request, some users not found (404)**:
-        :py:class:`SomeUsersNotFoundException`
+            { "status": "OK", "users": [ { "username": "<username>",
+                                            "full_name": "<full name>"},
+                                            ...] }
 
-    **Authorization required (412)**:
-        :py:class:`AuthorizationRequiredException`
+    :status 403: The user is not a member of the group
+        (:py:class:`UserIsNotMemberException`)
+    :status 404: User not found (via token)
+        (:py:class:`UserNotFoundException`)
+    :status 412: Authorization required
+        (:py:class:`AuthorizationRequiredException`)
     """
     user = request.user
     group = Group.query.get(groupId)
@@ -363,7 +349,7 @@ def list_group_members(groupId):
 
     LOG.debug('user groups: {groups}'.format(groups=user.groups))
 
-    if not group in user.groups:
+    if group not in user.groups:
         raise UserIsNotMemberException()
 
     users = []

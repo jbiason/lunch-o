@@ -62,7 +62,9 @@ def create_user():
 
        { "status": "OK" }
 
-    **User already exists (409)**: :py:class:`UsernameAlreadyExistsException`
+    :statuscode 200: Success
+    :statuscode 409: Username already exists
+        (:py:class:`UsernameAlreadyExistsException`)
     """
     json = request.get_json(force=True)
 
@@ -84,8 +86,9 @@ def create_user():
 @ForceJSON()
 @auth
 def update_user():
-    """*Authenticated request* Update user information. Only the fields send
-    with be changed.
+    """*Authenticated request*
+
+    Update user information. Only the fields send with be changed.
 
     **Example request**
 
@@ -110,14 +113,15 @@ def update_user():
 
        { "status": "OK" }
 
-    **Request not in JSON format (400)**:
-        :py:class:`RequestMustBeJSONException`
+    :reqheader Authorization: Token received in `/token/`
 
-    **User not found (via token) (404)**:
-        :py:class:`UserNotFoundException`
-
-    **Authorization required (412)**:
-        :py:class:`AuthorizationRequiredException`
+    :statuscode 200: Success
+    :statuscode 400: Request not in JSON format
+        (:py:class:`RequestMustBeJSONException`)
+    :statuscode 404: User not found (via token)
+        (:py:class:`UserNotFoundException`)
+    :statuscode 412: Authorization required
+        (:py:class:`AuthorizationRequiredException`)
     """
     json = request.get_json(force=True)
     user = request.user
@@ -148,11 +152,11 @@ def delete_user():
 
        { "status": "OK" }
 
-    **User not found (via token) (404)**:
-        :py:class:`UserNotFoundException`
-
-    **Authorization required (412)**:
-        :py:class:`AuthorizationRequiredException`
+    :statuscode 200: Success
+    :statuscode 404: User not found (via token)
+        (:py:class:`UserNotFoundException`)
+    :statuscode 412: Authorization required
+        (:py:class:`AuthorizationRequiredException`)
     """
     db.session.delete(request.user)
     db.session.commit()

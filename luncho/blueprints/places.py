@@ -24,8 +24,10 @@ places = Blueprint('places', __name__)
 @ForceJSON(required=['name'])
 @auth
 def create_place():
-    """*Authenticated request* Create a new place. The user becomes the
-    maintainer of the place once it is created.
+    """*Authenticated request*
+
+    Create a new place. The user becomes the maintainer of the place once it
+    is created.
 
     **Example request**:
 
@@ -33,23 +35,20 @@ def create_place():
 
         { "name": "<place name>" }
 
-    **Success (200)**
+    :reqheader Authorization: The token received in `/token/`.
 
-    .. sourcecode:: http
+    :statuscode 200: Success, the new place id will be returned in the
+        response
 
-        HTTP/1.1 200 OK
-        Content-Type: text/json
+        .. sourcecode:: http
 
-        { "status": "OK", "id": <new group id> }
-
-    **User not found (via token) (404)**:
-        :py:class:`UserNotFoundException`
-
-    **Authorization required (412)**:
-        :py:class:`AuthorizationRequiredException`
-
-    **Account not verified (412)**:
-        :py:class:`AccountNotVerifiedException`
+            { "status": "OK", "id": <place id> }
+    :statuscode 404: User not found (via token)
+        (:py:class:`UserNotFoundException`)
+    :statuscode 412: Authorization required
+        (:py:class:`AuthorizationRequiredException`)
+    :statuscode 412: Account not verified
+        (:py:class:`AccountNotVerifiedException`)
     """
     if not request.user.verified:
         raise AccountNotVerifiedException()
@@ -66,27 +65,30 @@ def create_place():
 @places.route('', methods=['GET'])
 @auth
 def get_places():
-    """*Authenticated request* Return the list of places the user is the
-    maintainer or belongs to one of the user's groups.
+    """*Authenticated request*
 
-    **Success (200)**
+    Return the list of places the user is the maintainer or belongs to one of
+    the user's groups.
 
-    .. sourcecode:: http
+    :reqheader Authorization: Access token received from `/token/`
 
-       HTTP/1.1 200 OK
-       Content-Type: text/json
+    :statuscode 200: Success
 
-       { "status": "OK", "places": [ { "id": "<placeId>",
-                                       "name": "<place name>",
-                                       "maintainer": <true if the user is the
-                                                      group maintainer>},
-                                      ...] }
+        .. sourcecode:: http
 
-    **User not found (via token) (404)**:
-        :py:class:`UserNotFoundException`
+            HTTP/1.1 200 OK
+            Content-Type: text/json
 
-    **Authorization required (412)**:
-        :py:class:`AuthorizationRequiredException`
+            { "status": "OK", "places": [ { "id": "<placeId>",
+                                            "name": "<place name>",
+                                            "maintainer": <true if the user is
+                                                the group maintainer>},
+                                            ...] }
+
+    :statuscode 404: User not found (via token)
+        (:py:class:`UserNotFoundException`)
+    :statuscode 412: Authorization required
+        (:py:class:`AuthorizationRequiredException`)
     """
     user = request.user
     places = {}
@@ -111,9 +113,13 @@ def get_places():
 @ForceJSON()
 @auth
 def update_place(placeId):
-    """*Authenticated request* Update the place information. The user must be
-    the maintainer of the place to change any information. Partial requests
-    are accepted and missing fields will not be changed.
+    """*Authenticated request*
+
+    Update the place information. The user must be the maintainer of the place
+    to change any information. Partial requests are accepted and missing
+    fields will not be changed.
+
+    :param placeId: Id for the place, as returned via GET or POST.
 
     **Example request**:
 
@@ -121,32 +127,20 @@ def update_place(placeId):
 
        { "name": "New name", "admin": "newAdmin" }
 
-    **Success (200)**:
+    :reqheader Authorization: Access token received from `/token/`.
 
-    .. sourcecode:: http
-
-       HTTP/1.1 200 OK
-       Content-Type: text/json
-
-       { "status": "OK" }
-
-    **Request not in JSON format (400)**:
-        :py:class:`RequestMustBeJSONException`
-
-    **User is not administrator of the group (403)**:
-        :py:class:`UserIsNotAdminException`
-
-    **User not found (via token) (404)**:
-        :py:class:`UserNotFoundException`
-
-    **The new admin does not exist (404)**:
-        :py:class:`NewMaintainerDoesNotExistException`
-
-    **The place does not exist (404)**:
-        :py:class:`ElementNotFoundException`
-
-    **Authorization required (412)**:
-        :py:class:`AuthorizationRequiredException`
+    :status 200: Success
+    :status 400: Request must be in JSON format
+        (:py:class:`RequestMustBeJSONException`)
+    :status 403: User is not administrator of the group
+        (:py:class:`UserIsNotAdminException`)
+    :status 404: User not found (via token)
+        (:py:class:`UserNotFoundException`)
+    :status 404: New maintainer does not exist
+        (:py:class:`NewMaintainerDoesNotExistException`)
+    :status 404: Place does not exist (:py:class:`ElementNotFoundException`)
+    :status 412: Authorization required
+        (:py:class:`AuthorizationRequiredException`)
     """
     place = Place.query.get(placeId)
     if not place:
@@ -174,29 +168,24 @@ def update_place(placeId):
 @places.route('<placeId>/', methods=['DELETE'])
 @auth
 def delete_place(placeId):
-    """*Authenticated request* Delete the place. The user must be
-    the maintainer of the place to delete it.
+    """*Authenticated request*
 
-    **Success (200)**:
+    Delete the place. The user must be the maintainer of the place to delete
+    it.
 
-    .. sourcecode:: http
+    :param placeId: The place Id, as returned by GET or POST
 
-       HTTP/1.1 200 OK
-       Content-Type: text/json
+    :header Authorization: Access token from `/token/`
 
-       { "status": "OK" }
-
-    **User is not administrator of the group (403)**:
-        :py:class:`UserIsNotAdminException`
-
-    **User not found (via token) (404)**:
-        :py:class:`UserNotFoundException`
-
-    **The place does not exist (404)**:
-        :py:class:`ElementNotFoundException`
-
-    **Authorization required (412)**:
-        :py:class:`AuthorizationRequiredException`
+    :status 200: Success
+    :status 403: User is not the group administrator
+        (:py:class:`UserIsNotAdminException`)
+    :status 404: User not found (via token)
+        (:py:class:`UserNotFoundException`)
+    :status 404: Place does not exist
+        (:py:class:`ElementNotFoundException`)
+    :status 412: Authorization required
+        (:py:class:`AuthorizationRequiredException`)
     """
     place = Place.query.get(placeId)
     if not place:

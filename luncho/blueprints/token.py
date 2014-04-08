@@ -78,9 +78,10 @@ def get_token():
 
        { "status": "OK", "token": "access_token" }
 
-    **Invalid password (401)**: :py:class:`InvalidPasswordException`
-
-    **Unknown user (404)**: :py:class:`UserDoesNotExistException`
+    :statuscode 200: Success
+    :statuscode 401: Wrong password (:py:class:`InvalidPasswordException`)
+    :statuscode 404: User does not exist
+        (:py:class:`UserDoesNotExistException`)
     """
     json = request.get_json(force=True)
 
