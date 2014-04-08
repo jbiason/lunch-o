@@ -2,3 +2,4 @@ nose
 nosexcover
 sphinx
 sphinxcontrib-httpdomain
+sphinx_rtd_theme
