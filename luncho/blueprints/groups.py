@@ -255,8 +255,10 @@ def delete_group(groupId):
 
     return jsonify(status='OK')
 
+group_users = Blueprint('group_users', __name__)
 
-@groups.route('<groupId>/users/', methods=['PUT'])
+
+@group_users.route('<groupId>/users/', methods=['PUT'])
 @ForceJSON(required=['usernames'])
 @auth
 def add_users_to_group(groupId):
@@ -312,7 +314,7 @@ def add_users_to_group(groupId):
     return jsonify(status='OK')
 
 
-@groups.route('<groupId>/users/', methods=['GET'])
+@group_users.route('<groupId>/users/', methods=['GET'])
 @auth
 def list_group_members(groupId):
     """*Authenticated request*
