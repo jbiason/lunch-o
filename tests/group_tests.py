@@ -184,6 +184,19 @@ class TestExistingGroups(LunchoTests):
                       token=self.user.token)
         self.assertJsonError(rv, 404, 'Group not found')
 
+    def test_not_admin(self):
+        """Try to update with a user that it is not the group admin."""
+        new_user = self.create_user(name='another_user',
+                                    fullname='Another user',
+                                    passhash='hash',
+                                    verified=True,
+                                    create_token=True)
+        request = {'name': 'A new name'}
+        rv = self.put('/group/{groupId}/'.format(groupId=self.group.id),
+                      request,
+                      token=new_user.token)
+        self.assertJsonError(rv, 403, 'User is not admin')
+
     def test_delete_group(self):
         """Delete a group."""
         groupId = self.group.id
@@ -343,6 +356,13 @@ class TestUsersInGroup(LunchoTests):
                       token=new_user.token)
         self.assertJsonError(rv, 403, 'User is not member of this group')
         return
+
+    def test_unknown_group(self):
+        """Test trying to get members of a group that doesn't exist."""
+        groupId = self.group.id + 10
+        rv = self.get('/group/{groupId}/users/'.format(groupId=groupId),
+                      token=self.user.token)
+        self.assertJsonError(rv, 404, 'Group not found')
 
 if __name__ == '__main__':
     unittest.main()
