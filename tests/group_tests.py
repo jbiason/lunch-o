@@ -237,9 +237,11 @@ class TestUsersInGroup(LunchoTests):
         self.user.groups.append(self.group)
         server.db.session.commit()
         self.user.get_token()
+        return
 
     def tearDown(self):
         super(TestUsersInGroup, self).tearDown()
+        return
 
     def test_add_user(self):
         """Try to add another user in the group."""
@@ -255,6 +257,7 @@ class TestUsersInGroup(LunchoTests):
                       request,
                       token=self.user.token)
         self.assertJsonOk(rv)
+        return
 
     def test_add_no_owner(self):
         """Try to add users without being the group admin."""
@@ -271,6 +274,7 @@ class TestUsersInGroup(LunchoTests):
                       request,
                       token=new_user.token)
         self.assertJsonError(rv, 403, 'User is not admin')
+        return
 
     def test_add_no_such_user(self):
         """Try to add an unknown user to the group."""
@@ -280,6 +284,7 @@ class TestUsersInGroup(LunchoTests):
                       token=self.user.token)
         self.assertJsonError(rv, 404,
                              'Some users in the add list do not exist')
+        return
 
     def test_add_unknown_group(self):
         """Try to add users to some unknown group."""
@@ -290,6 +295,7 @@ class TestUsersInGroup(LunchoTests):
                       request,
                       token=self.user.token)
         self.assertJsonError(rv, 404, 'Group not found')
+        return
 
     def test_get_members(self):
         """Try to get a list of group members."""
@@ -303,6 +309,7 @@ class TestUsersInGroup(LunchoTests):
                          self.user.username)
         self.assertEqual(json['users'][0]['full_name'],
                          self.user.fullname)
+        return
 
     def test_get_members_by_member(self):
         """Non admin user requests the list of group members."""
@@ -321,6 +328,7 @@ class TestUsersInGroup(LunchoTests):
         json = loads(rv.data)
         self.assertTrue('users' in json)
         self.assertEqual(len(json['users']), 2)     # owner and new user
+        return
 
     def test_get_members_by_non_member(self):
         """A user that is not part of the group ask for members."""
@@ -334,6 +342,7 @@ class TestUsersInGroup(LunchoTests):
         rv = self.get('/group/{groupId}/users/'.format(groupId=self.group.id),
                       token=new_user.token)
         self.assertJsonError(rv, 403, 'User is not member of this group')
+        return
 
 if __name__ == '__main__':
     unittest.main()

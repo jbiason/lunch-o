@@ -344,14 +344,11 @@ def list_group_members(groupId):
     :status 412: Authorization required
         (:py:class:`AuthorizationRequiredException`)
     """
-    user = request.user
-    group = Group.query.get(groupId)
+    group = Group.query.filter_by(id=groupId).first()
     if not group:
         raise ElementNotFoundException('Group')
 
-    LOG.debug('user groups: {groups}'.format(groups=user.groups))
-
-    if group not in user.groups:
+    if request.user not in group.users:
         raise UserIsNotMemberException()
 
     users = []
