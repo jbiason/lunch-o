@@ -7,7 +7,6 @@ from json import loads
 
 from luncho import server
 
-from luncho.server import User
 from luncho.server import Place
 
 from base import LunchoTests
@@ -86,6 +85,12 @@ class TestExistingPlaces(LunchoTests):
         # check the database
         place = Place.query.get(placeId)
         self.assertEqual(place.owner, 'newUser')
+
+    def test_delete_place(self):
+        """Delete a place."""
+        rv = self.delete('/place/{placeId}/'.format(placeId=self.place.id),
+                         token=self.user.token)
+        self.assertJsonOk(rv)
 
 
 if __name__ == '__main__':
