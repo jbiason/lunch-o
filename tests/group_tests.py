@@ -442,6 +442,41 @@ class TestPlacesInGroup(LunchoTests):
                        request,
                        token=self.user.token)
         self.assertJsonOk(rv)
+        json = loads(rv.data)
+        self.assertTrue('rejected' in json)
+        self.assertFalse(json['rejected'])  # the list should be empty (False)
+        return
+
+    def test_add_place_of_member(self):
+        """Add a place that belongs to a member of the group."""
+        new_user = self.create_user(name='newuser',
+                                    fullname='new user',
+                                    verified=True)
+        group = self._group()           # group belongs to self.user
+        group.users.append(new_user)
+        place = self._place(new_user)   # place belongs to new_user
+
+        request = {'places': [place.id]}
+        group_id = group.id
+        rv = self.post('/group/{group_id}/places/'.format(group_id=group_id),
+                       request,
+                       token=self.user.token)
+        self.assertJsonOk(rv)
+
+    def test_add_place_of_non_member(self):
+        """Add a place that belongs to seomeone not in the group."""
+        new_user = self.create_user(name='newuser',
+                                    fullname='new user',
+                                    verified=True)
+        group = self._group()           # group belongs to self.user
+        place = self._place(new_user)   # place belongs to new_user
+
+        request = {'places': [place.id]}
+        group_id = group.id
+        rv = self.post('/group/{group_id}/places/'.format(group_id=group_id),
+                       request,
+                       token=self.user.token)
+        self.assertJsonOk(rv)
 
 if __name__ == '__main__':
     unittest.main()

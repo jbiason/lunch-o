@@ -454,14 +454,19 @@ def group_add_places(group_id):
 
     not_found = []
     rejected = []
+    LOG.debug('Users in the group: {users}'.format(users=group.users))
     for place_id in request.as_json.get('places', []):
         place = Place.query.get(place_id)
         if not place:
             not_found.append(place_id)
             continue
 
+        LOG.debug('Place {place_id} owner: {owner}'.format(
+            place_id=place_id,
+            owner=place.owner))
         if place.owner not in group.users:
             rejected.append(place_id)
+            continue
 
         group.places.append(place)
     db.session.commit()

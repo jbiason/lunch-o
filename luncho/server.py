@@ -64,7 +64,7 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, nullable=False)
     groups = db.relationship('Group',
                              secondary=user_groups,
-                             backref=db.backref('users', lazy='dynamic'))
+                             backref=db.backref('users', lazy='select'))
 
     def __init__(self, username, fullname, passhash, token=None,
                  issued_date=None, verified=False):
@@ -92,6 +92,11 @@ class User(db.Model):
                              'issued_date': datetime.date.today().isoformat()})
         return hmac.new(self.created_at.isoformat(), phrase).hexdigest()
 
+    def __repr__(self):
+        return 'User {username}-{fullname}'.format(
+            username=self.username,
+            fullname=self.fullname)
+
 
 class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -99,8 +104,7 @@ class Group(db.Model):
     owner = db.Column(db.String, db.ForeignKey('user.username'))
     places = db.relationship('Place',
                              secondary=group_places,
-                             backref='groups',
-                             lazy='dynamic')
+                             backref=db.backref('groups', lazy='select'))
 
     def __init__(self, name, owner):
         self.name = name
