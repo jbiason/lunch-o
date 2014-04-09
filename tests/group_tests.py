@@ -499,5 +499,28 @@ class TestPlacesInGroup(LunchoTests):
         self.assertTrue('places' in json)
         self.assertEquals(place.id, json['places'][0]['id'])
 
+    def test_delete_place(self):
+        """Delete a place from a group."""
+        group = self._group()
+        place = self._place()
+        group.places.append(place)
+        server.db.session.commit()
+
+        group_id = group.id
+        place_id = place.id
+
+        url = '/group/{group_id}/places/{place_id}/'.format(
+            group_id=group_id, place_id=place_id)
+        rv = self.delete(url,
+                         token=self.user.token)
+
+        self.assertJsonOk(rv)
+
+        # check if it was really removed in the database
+        group = Group.query.get(group_id)
+        for place in group.places:
+            if place.id == place_id:
+                self.fail('Place still connected to group')
+
 if __name__ == '__main__':
     unittest.main()

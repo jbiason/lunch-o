@@ -144,7 +144,7 @@ def create_group():
                    id=new_group.id)
 
 
-@groups.route('<group_id>/', methods=['PUT'])
+@groups.route('<int:group_id>/', methods=['PUT'])
 @ForceJSON()
 @auth
 def update_group(group_id):
@@ -204,7 +204,7 @@ def update_group(group_id):
     return jsonify(status='OK')
 
 
-@groups.route('<group_id>/', methods=['DELETE'])
+@groups.route('<int:group_id>/', methods=['DELETE'])
 @auth
 def delete_group(group_id):
     """*Authenticated request*
@@ -243,7 +243,7 @@ def delete_group(group_id):
 group_users = Blueprint('group_users', __name__)
 
 
-@group_users.route('<group_id>/users/', methods=['PUT'])
+@group_users.route('<int:group_id>/users/', methods=['PUT'])
 @ForceJSON(required=['usernames'])
 @auth
 def add_users_to_group(group_id):
@@ -304,7 +304,7 @@ def add_users_to_group(group_id):
                    not_found=unknown)
 
 
-@group_users.route('<group_id>/users/', methods=['GET'])
+@group_users.route('<int:group_id>/users/', methods=['GET'])
 @auth
 def list_group_members(group_id):
     """*Authenticated request*
@@ -359,7 +359,7 @@ def list_group_members(group_id):
 group_places = Blueprint('group_places', __name__)
 
 
-@group_places.route('<group_id>/places/', methods=['GET'])
+@group_places.route('<int:group_id>/places/', methods=['GET'])
 @auth
 def get_group_places(group_id):
     """*Authenticated request*
@@ -407,7 +407,7 @@ def get_group_places(group_id):
                    places=places)
 
 
-@group_places.route('<group_id>/places/', methods=['POST'])
+@group_places.route('<int:group_id>/places/', methods=['POST'])
 @ForceJSON(required=['places'])
 @auth
 def group_add_places(group_id):
@@ -477,7 +477,8 @@ def group_add_places(group_id):
                    rejected=rejected)
 
 
-@group_places.route('<group_id>/places/<place_id>/', methods=['DELETE'])
+@group_places.route('<int:group_id>/places/<int:place_id>/',
+                    methods=['DELETE'])
 @auth
 def group_remove_place(group_id, place_id):
     """*Authenticated request*
@@ -504,10 +505,17 @@ def group_remove_place(group_id, place_id):
     if not group:
         raise ElementNotFoundException('Group')
 
-    index = None
-    try:
-        index = group.places.index(place_id)
-    except ValueError:
+    index = -1
+    LOG.debug('Places: {places}'.format(places=group.places))
+    for (pos, place) in enumerate(group.places):
+        LOG.debug('Place {pos} = {place} (search {search})'.format(
+            pos=pos, place=place.id, search=place_id))
+        if place.id == place_id:
+            index = pos
+            break
+
+    LOG.debug('Index: {index}'.format(index=index))
+    if index == -1:
         raise ElementNotFoundException('Place')
 
     del group.places[index]
