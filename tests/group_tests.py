@@ -9,6 +9,7 @@ from luncho import server
 
 from luncho.server import User
 from luncho.server import Group
+from luncho.server import Place
 
 from base import LunchoTests
 
@@ -126,22 +127,22 @@ class TestExistingGroups(LunchoTests):
 
     def test_update_name(self):
         """Change the group name."""
-        groupId = self.group.id
+        group_id = self.group.id
         request = {'name': 'New test group'}
-        rv = self.put('/group/{groupId}/'.format(groupId=self.group.id),
+        rv = self.put('/group/{group_id}/'.format(group_id=self.group.id),
                       request,
                       token=self.user.token)
         self.assertJsonOk(rv)
 
         # check the database
-        group = Group.query.get(groupId)
+        group = Group.query.get(group_id)
         self.assertEqual(group.name, request['name'])
         return
 
     def test_update_name_invalid_token(self):
         """Try to change the name with an unknown token."""
         request = {'name': 'New test group'}
-        rv = self.put('/group/{groupId}/'.format(groupId=self.group.id),
+        rv = self.put('/group/{group_id}/'.format(group_id=self.group.id),
                       request,
                       token='invalid')
         self.assertJsonError(rv, 404, 'User not found (via token)')
@@ -153,7 +154,7 @@ class TestExistingGroups(LunchoTests):
         server.db.session.commit()
 
         request = {'name': 'New test group'}
-        rv = self.put('/group/{groupId}/'.format(groupId=self.group.id),
+        rv = self.put('/group/{group_id}/'.format(group_id=self.group.id),
                       request,
                       token=self.user.token)
         self.assertJsonError(rv, 400, 'Invalid token')
@@ -167,24 +168,24 @@ class TestExistingGroups(LunchoTests):
         server.db.session.add(new_user)
         server.db.session.commit()
 
-        groupId = self.group.id
+        group_id = self.group.id
         new_username = new_user.username
 
         request = {'admin': new_user.username}
-        rv = self.put('/group/{groupId}/'.format(groupId=groupId),
+        rv = self.put('/group/{group_id}/'.format(group_id=group_id),
                       request,
                       token=self.user.token)
         self.assertJsonOk(rv)
 
         # check the database
-        group = Group.query.get(groupId)
+        group = Group.query.get(group_id)
         self.assertEqual(group.owner, new_username)
         return
 
     def test_update_owner_invalid(self):
         """Try to change the owner to a user that doesn't exist."""
         request = {'admin': 'unknown'}
-        rv = self.put('/group/{groupId}/'.format(groupId=self.group.id),
+        rv = self.put('/group/{group_id}/'.format(group_id=self.group.id),
                       request,
                       token=self.user.token)
         self.assertJsonError(rv, 404, 'New admin not found')
@@ -192,9 +193,9 @@ class TestExistingGroups(LunchoTests):
 
     def test_update_unknown_group(self):
         """Try to update a group that doesn't exist."""
-        groupId = self.group.id + 10
+        group_id = self.group.id + 10
         request = {'name': 'New test group'}
-        rv = self.put('/group/{groupId}/'.format(groupId=groupId),
+        rv = self.put('/group/{group_id}/'.format(group_id=group_id),
                       request,
                       token=self.user.token)
         self.assertJsonError(rv, 404, 'Group not found')
@@ -208,7 +209,7 @@ class TestExistingGroups(LunchoTests):
                                     verified=True,
                                     create_token=True)
         request = {'name': 'A new name'}
-        rv = self.put('/group/{groupId}/'.format(groupId=self.group.id),
+        rv = self.put('/group/{group_id}/'.format(group_id=self.group.id),
                       request,
                       token=new_user.token)
         self.assertJsonError(rv, 403, 'User is not admin')
@@ -216,16 +217,16 @@ class TestExistingGroups(LunchoTests):
 
     def test_delete_group(self):
         """Delete a group."""
-        groupId = self.group.id
-        rv = self.delete('/group/{groupId}/'.format(groupId=groupId),
+        group_id = self.group.id
+        rv = self.delete('/group/{group_id}/'.format(group_id=group_id),
                          token=self.user.token)
         self.assertJsonOk(rv)
         return
 
     def test_delete_unknown_group(self):
         """Delete a group that doesn't exist."""
-        groupId = self.group.id + 10
-        rv = self.delete('/group/{groupId}/'.format(groupId=groupId),
+        group_id = self.group.id + 10
+        rv = self.delete('/group/{group_id}/'.format(group_id=group_id),
                          token=self.user.token)
         self.assertJsonError(rv, 404, 'Group not found')
         return
@@ -239,14 +240,14 @@ class TestExistingGroups(LunchoTests):
         server.db.session.commit()
         new_user.get_token()
 
-        rv = self.delete('/group/{groupId}/'.format(groupId=self.group.id),
+        rv = self.delete('/group/{group_id}/'.format(group_id=self.group.id),
                          token=new_user.token)
         self.assertJsonError(rv, 403, 'User is not admin')
         return
 
     def test_delete_invalid_token(self):
         """Try to delete a group with an unknown token."""
-        rv = self.delete('/group/{groupId}/'.format(groupId=self.group.id),
+        rv = self.delete('/group/{group_id}/'.format(group_id=self.group.id),
                          token='invalid')
         self.assertJsonError(rv, 404, 'User not found (via token)')
         return
@@ -287,7 +288,8 @@ class TestUsersInGroup(LunchoTests):
 
         request = {'usernames': [new_user.username]}
 
-        rv = self.put('/group/{groupId}/users/'.format(groupId=self.group.id),
+        url = '/group/{group_id}/users/'.format(group_id=self.group.id)
+        rv = self.put(url,
                       request,
                       token=self.user.token)
         self.assertJsonOk(rv)
@@ -304,7 +306,8 @@ class TestUsersInGroup(LunchoTests):
 
         request = {'usernames': [new_user.username]}
 
-        rv = self.put('/group/{groupId}/users/'.format(groupId=self.group.id),
+        url = '/group/{group_id}/users/'.format(group_id=self.group.id)
+        rv = self.put(url,
                       request,
                       token=new_user.token)
         self.assertJsonError(rv, 403, 'User is not admin')
@@ -313,7 +316,8 @@ class TestUsersInGroup(LunchoTests):
     def test_add_no_such_user(self):
         """Try to add an unknown user to the group."""
         request = {'usernames': ['unknown']}
-        rv = self.put('/group/{groupId}/users/'.format(groupId=self.group.id),
+        url = '/group/{group_id}/users/'.format(group_id=self.group.id)
+        rv = self.put(url,
                       request,
                       token=self.user.token)
 
@@ -329,8 +333,8 @@ class TestUsersInGroup(LunchoTests):
         """Try to add users to some unknown group."""
         # the usernames are worthless, group not found should kick first
         request = {'usernames': ['unkonwn']}
-        groupId = self.group.id + 10
-        rv = self.put('/group/{groupId}/users/'.format(groupId=groupId),
+        group_id = self.group.id + 10
+        rv = self.put('/group/{group_id}/users/'.format(group_id=group_id),
                       request,
                       token=self.user.token)
         self.assertJsonError(rv, 404, 'Group not found')
@@ -340,7 +344,8 @@ class TestUsersInGroup(LunchoTests):
         """Try to get a list of group members."""
         username = self.user.username
         fullname = self.user.fullname
-        rv = self.get('/group/{groupId}/users/'.format(groupId=self.group.id),
+        url = '/group/{group_id}/users/'.format(group_id=self.group.id)
+        rv = self.get(url,
                       token=self.user.token)
         self.assertJsonOk(rv)
         json = loads(rv.data)
@@ -360,7 +365,8 @@ class TestUsersInGroup(LunchoTests):
         server.db.session.commit()
         new_user.get_token()
 
-        rv = self.get('/group/{groupId}/users/'.format(groupId=self.group.id),
+        url = '/group/{group_id}/users/'.format(group_id=self.group.id)
+        rv = self.get(url,
                       token=new_user.token)
         self.assertJsonOk(rv)
 
@@ -378,17 +384,64 @@ class TestUsersInGroup(LunchoTests):
         server.db.session.commit()
         new_user.get_token()
 
-        rv = self.get('/group/{groupId}/users/'.format(groupId=self.group.id),
+        url = '/group/{group_id}/users/'.format(group_id=self.group.id)
+        rv = self.get(url,
                       token=new_user.token)
         self.assertJsonError(rv, 403, 'User is not member of this group')
         return
 
     def test_unknown_group(self):
         """Test trying to get members of a group that doesn't exist."""
-        groupId = self.group.id + 10
-        rv = self.get('/group/{groupId}/users/'.format(groupId=groupId),
+        group_id = self.group.id + 10
+        rv = self.get('/group/{group_id}/users/'.format(group_id=group_id),
                       token=self.user.token)
         self.assertJsonError(rv, 404, 'Group not found')
+        return
+
+
+class TestPlacesInGroup(LunchoTests):
+    """Test the integration between groups and places."""
+
+    def setUp(self):
+        super(TestPlacesInGroup, self).setUp()
+        self.default_user()
+        return
+
+    def tearDown(self):
+        super(TestPlacesInGroup, self).tearDown()
+        return
+
+    def _group(self):
+        """Add a default group."""
+        group = Group(name='Test group',
+                      owner=self.user)
+        server.db.session.add(group)
+        self.user.groups.append(group)
+        server.db.session.commit()
+        return group
+
+    def _place(self, user=None):
+        """Add a default place, linked to the user."""
+        if not user:
+            user = self.user
+
+        place = Place(name='Place',
+                      owner=self.user)
+        server.db.session.add(place)
+        server.db.session.commit()
+        return place
+
+    def test_add_place(self):
+        """Add a place to the group."""
+        place = self._place()
+        group = self._group()
+
+        request = {'places': [place.id]}
+        group_id = group.id
+        rv = self.post('/group/{group_id}/places/'.format(group_id=group_id),
+                       request,
+                       token=self.user.token)
+        self.assertJsonOk(rv)
 
 if __name__ == '__main__':
     unittest.main()

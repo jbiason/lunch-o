@@ -445,9 +445,11 @@ def group_add_places(group_id):
     """
     group = Group.query.get(group_id)
     if not group:
+        LOG.debug('Cant find group with id {group_id}'.format(
+            group_id=group_id))
         raise ElementNotFoundException('Group')
 
-    if not group.owner == request.user:
+    if not group.owner == request.user.username:
         raise UserIsNotAdminException()
 
     not_found = []

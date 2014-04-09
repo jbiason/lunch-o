@@ -128,12 +128,14 @@ from blueprints.users import users
 from blueprints.token import token
 from blueprints.groups import groups
 from blueprints.groups import group_users
+from blueprints.groups import group_places
 from blueprints.places import places
 
 app.register_blueprint(token, url_prefix='/token/')
 app.register_blueprint(users, url_prefix='/user/')
 app.register_blueprint(groups, url_prefix='/group/')
 app.register_blueprint(group_users, url_prefix='/group/')
+app.register_blueprint(group_places, url_prefix='/group/')
 app.register_blueprint(places, url_prefix='/place/')
 
 
