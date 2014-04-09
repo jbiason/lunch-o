@@ -462,6 +462,9 @@ class TestPlacesInGroup(LunchoTests):
                        request,
                        token=self.user.token)
         self.assertJsonOk(rv)
+        json = loads(rv.data)
+        self.assertTrue('rejected' in json)
+        self.assertFalse(json['rejected'])
 
     def test_add_place_of_non_member(self):
         """Add a place that belongs to seomeone not in the group."""
