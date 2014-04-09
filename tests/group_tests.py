@@ -32,6 +32,7 @@ class TestGroups(LunchoTests):
         """Get an empty list from a user without groups."""
         rv = self.get('/group/', token=self.user.token)
         self.assertJsonOk(rv, groups=[])
+        return
 
     def test_create_group(self):
         """Test creating a group."""
@@ -40,6 +41,7 @@ class TestGroups(LunchoTests):
                        request,
                        token=self.user.token)
         self.assertJsonOk(rv, id=1)
+        return
 
     def test_create_group_unverified_account(self):
         """Try creating a group with an account that's not verified yet."""
@@ -51,6 +53,7 @@ class TestGroups(LunchoTests):
                        request,
                        token=self.user.token)
         self.assertJsonError(rv, 412, 'Account not verified')
+        return
 
     def test_user_in_own_group(self):
         """The user must belong to a group it owns."""
@@ -60,11 +63,13 @@ class TestGroups(LunchoTests):
         self.assertJsonOk(rv, groups=[{'id': 1,
                                        'name': 'Test group',
                                        'admin': True}])
+        return
 
     def test_get_groups_unknown_token(self):
         """Request groups with an unknown token."""
         rv = self.get('/group/', token='invalid')
         self.assertJsonError(rv, 404, 'User not found (via token)')
+        return
 
     def test_get_groups_expired_token(self):
         """Request groups with an expired token."""
@@ -73,6 +78,7 @@ class TestGroups(LunchoTests):
 
         rv = self.get('/group/', token=self.user.token)
         self.assertJsonError(rv, 400, 'Invalid token')
+        return
 
     def test_create_group_unknown_token(self):
         """Try to create a group with an invalid token."""
@@ -81,6 +87,7 @@ class TestGroups(LunchoTests):
                        request,
                        token='invalid')
         self.assertJsonError(rv, 404, 'User not found (via token)')
+        return
 
     def test_create_group_expired_token(self):
         self.user.token = 'expired'
@@ -91,6 +98,7 @@ class TestGroups(LunchoTests):
                        request,
                        token=self.user.token)
         self.assertJsonError(rv, 400, 'Invalid token')
+        return
 
 
 class TestExistingGroups(LunchoTests):
@@ -110,9 +118,11 @@ class TestExistingGroups(LunchoTests):
         server.db.session.add(self.group)
         server.db.session.commit()
         self.user.get_token()
+        return
 
     def tearDown(self):
         super(TestExistingGroups, self).tearDown()
+        return
 
     def test_update_name(self):
         """Change the group name."""
@@ -126,6 +136,7 @@ class TestExistingGroups(LunchoTests):
         # check the database
         group = Group.query.get(groupId)
         self.assertEqual(group.name, request['name'])
+        return
 
     def test_update_name_invalid_token(self):
         """Try to change the name with an unknown token."""
@@ -134,6 +145,7 @@ class TestExistingGroups(LunchoTests):
                       request,
                       token='invalid')
         self.assertJsonError(rv, 404, 'User not found (via token)')
+        return
 
     def test_update_name_expired_token(self):
         """Try to change the name with an expired token."""
@@ -145,6 +157,7 @@ class TestExistingGroups(LunchoTests):
                       request,
                       token=self.user.token)
         self.assertJsonError(rv, 400, 'Invalid token')
+        return
 
     def test_update_owner(self):
         """Change the group owner."""
@@ -166,6 +179,7 @@ class TestExistingGroups(LunchoTests):
         # check the database
         group = Group.query.get(groupId)
         self.assertEqual(group.owner, new_username)
+        return
 
     def test_update_owner_invalid(self):
         """Try to change the owner to a user that doesn't exist."""
@@ -174,6 +188,7 @@ class TestExistingGroups(LunchoTests):
                       request,
                       token=self.user.token)
         self.assertJsonError(rv, 404, 'New admin not found')
+        return
 
     def test_update_unknown_group(self):
         """Try to update a group that doesn't exist."""
@@ -183,6 +198,7 @@ class TestExistingGroups(LunchoTests):
                       request,
                       token=self.user.token)
         self.assertJsonError(rv, 404, 'Group not found')
+        return
 
     def test_not_admin(self):
         """Try to update with a user that it is not the group admin."""
@@ -196,6 +212,7 @@ class TestExistingGroups(LunchoTests):
                       request,
                       token=new_user.token)
         self.assertJsonError(rv, 403, 'User is not admin')
+        return
 
     def test_delete_group(self):
         """Delete a group."""
@@ -203,6 +220,7 @@ class TestExistingGroups(LunchoTests):
         rv = self.delete('/group/{groupId}/'.format(groupId=groupId),
                          token=self.user.token)
         self.assertJsonOk(rv)
+        return
 
     def test_delete_unknown_group(self):
         """Delete a group that doesn't exist."""
@@ -210,6 +228,7 @@ class TestExistingGroups(LunchoTests):
         rv = self.delete('/group/{groupId}/'.format(groupId=groupId),
                          token=self.user.token)
         self.assertJsonError(rv, 404, 'Group not found')
+        return
 
     def test_delete_not_admin(self):
         """Try to delete a group when the user is not the admin."""
@@ -223,12 +242,14 @@ class TestExistingGroups(LunchoTests):
         rv = self.delete('/group/{groupId}/'.format(groupId=self.group.id),
                          token=new_user.token)
         self.assertJsonError(rv, 403, 'User is not admin')
+        return
 
     def test_delete_invalid_token(self):
         """Try to delete a group with an unknown token."""
         rv = self.delete('/group/{groupId}/'.format(groupId=self.group.id),
                          token='invalid')
         self.assertJsonError(rv, 404, 'User not found (via token)')
+        return
 
 
 class TestUsersInGroup(LunchoTests):
@@ -295,8 +316,13 @@ class TestUsersInGroup(LunchoTests):
         rv = self.put('/group/{groupId}/users/'.format(groupId=self.group.id),
                       request,
                       token=self.user.token)
-        self.assertJsonError(rv, 404,
-                             'Some users in the add list do not exist')
+
+        # not finding users still returns a 200, but with the users in the
+        # "not_found" field
+        self.assertJsonOk(rv)
+        json = loads(rv.data)
+        self.assertTrue('not_found' in json)
+        self.assertTrue('unknown' in json['not_found'])
         return
 
     def test_add_unknown_group(self):
@@ -312,16 +338,16 @@ class TestUsersInGroup(LunchoTests):
 
     def test_get_members(self):
         """Try to get a list of group members."""
+        username = self.user.username
+        fullname = self.user.fullname
         rv = self.get('/group/{groupId}/users/'.format(groupId=self.group.id),
                       token=self.user.token)
         self.assertJsonOk(rv)
         json = loads(rv.data)
         self.assertTrue('users' in json)
         self.assertEqual(len(json['users']), 1)     # just the owner
-        self.assertEqual(json['users'][0]['username'],
-                         self.user.username)
-        self.assertEqual(json['users'][0]['full_name'],
-                         self.user.fullname)
+        self.assertEqual(json['users'][0]['username'], username)
+        self.assertEqual(json['users'][0]['full_name'], fullname)
         return
 
     def test_get_members_by_member(self):
