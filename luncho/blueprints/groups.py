@@ -454,7 +454,8 @@ def group_add_places(group_id):
 
     not_found = []
     rejected = []
-    LOG.debug('Users in the group: {users}'.format(users=group.users))
+    group_users = [user.username for user in group.users]
+    LOG.debug('Users in the group: {users}'.format(users=group_users))
     for place_id in request.as_json.get('places', []):
         place = Place.query.get(place_id)
         if not place:
@@ -464,7 +465,7 @@ def group_add_places(group_id):
         LOG.debug('Place {place_id} owner: {owner}'.format(
             place_id=place_id,
             owner=place.owner))
-        if place.owner not in group.users:
+        if place.owner not in group_users:
             rejected.append(place_id)
             continue
 

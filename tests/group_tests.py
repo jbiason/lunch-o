@@ -426,7 +426,7 @@ class TestPlacesInGroup(LunchoTests):
             user = self.user
 
         place = Place(name='Place',
-                      owner=self.user)
+                      owner=user)
         server.db.session.add(place)
         server.db.session.commit()
         return place
@@ -470,6 +470,7 @@ class TestPlacesInGroup(LunchoTests):
                                     verified=True)
         group = self._group()           # group belongs to self.user
         place = self._place(new_user)   # place belongs to new_user
+        place_id = place.id
 
         request = {'places': [place.id]}
         group_id = group.id
@@ -477,6 +478,9 @@ class TestPlacesInGroup(LunchoTests):
                        request,
                        token=self.user.token)
         self.assertJsonOk(rv)
+        json = loads(rv.data)
+        self.assertTrue('rejected' in json)
+        self.assertTrue(place_id in json['rejected'])
 
 if __name__ == '__main__':
     unittest.main()
