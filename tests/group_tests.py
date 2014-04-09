@@ -485,5 +485,19 @@ class TestPlacesInGroup(LunchoTests):
         self.assertTrue('rejected' in json)
         self.assertTrue(place_id in json['rejected'])
 
+    def test_get_group_places(self):
+        """Try to get a list of places in the group."""
+        group = self._group()
+        place = self._place()
+        group.places.append(place)
+        server.db.session.commit()
+
+        rv = self.get('/group/{group_id}/places/'.format(group_id=group.id),
+                      token=self.user.token)
+        self.assertJsonOk(rv)
+        json = loads(rv.data)
+        self.assertTrue('places' in json)
+        self.assertEquals(place.id, json['places'][0]['id'])
+
 if __name__ == '__main__':
     unittest.main()
