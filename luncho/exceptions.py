@@ -116,12 +116,12 @@ class AuthorizationRequiredException(LunchoException):
        HTTP/1.1 401 Unauthorized
        Content-Type: text/json
 
-       { "status": "ERROR": "message": "Request requires authorization" }
+       { "status": "ERROR": "message": "Request requires authentication" }
     """
     def __init__(self):
         super(AuthorizationRequiredException, self).__init__()
         self.status = 401
-        self.message = 'Request requires authorization'
+        self.message = 'Request requires authentication'
 
 
 class AccountNotVerifiedException(LunchoException):

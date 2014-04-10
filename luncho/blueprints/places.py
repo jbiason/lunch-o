@@ -90,17 +90,16 @@ def get_places():
     :statuscode 412: Authorization required
         (:py:class:`AuthorizationRequiredException`)
     """
-    user = request.user
     places = {}
-    for group in user.groups:
+    for group in request.user.groups:
         for place in group.places:
-            maintainer = place.owner == user.username
+            maintainer = place.owner == request.user.username
             places[place.id] = {'id': place.id,
                                 'name': place.name,
                                 'maintainer': maintainer}
 
-    for place in Place.query.filter_by(owner=user.username):
-        maintainer = place.owner == user.username
+    for place in Place.query.filter_by(owner=request.user.username):
+        maintainer = place.owner == request.user.username
         places[place.id] = {'id': place.id,
                             'name': place.name,
                             'maintainer': maintainer}
