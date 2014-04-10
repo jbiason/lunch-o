@@ -445,6 +445,9 @@ class TestPlacesInGroup(LunchoTests):
         json = loads(rv.data)
         self.assertTrue('rejected' in json)
         self.assertFalse(json['rejected'])  # the list should be empty (False)
+
+        self.assertTrue('not_found' in json)
+        self.assertFalse(json['not_found'])
         return
 
     def test_add_place_of_member(self):
@@ -484,6 +487,51 @@ class TestPlacesInGroup(LunchoTests):
         json = loads(rv.data)
         self.assertTrue('rejected' in json)
         self.assertTrue(place_id in json['rejected'])
+        return
+
+    def test_add_place_unkown_group(self):
+        """Add a place to a group that doesn't exist."""
+        place = self._place()
+        request = {'places': [place.id]}
+        rv = self.post('/group/{group_id}/places/'.format(group_id=100),
+                       request,
+                       token=self.user.token)
+        self.assertJsonError(rv, 404, 'Group not found')
+        return
+
+    def test_add_place_non_admin(self):
+        """Try to add a place with a user that's not the group admin."""
+        new_user = self.create_user(name='newUser',
+                                    fullname='new user',
+                                    verified=True,
+                                    create_token=True)
+        group = self._group()
+        place = self._place(new_user)   # just make sure the user owns it
+
+        request = {'places': [place.id]}
+        rv = self.post('/group/{group_id}/places/'.format(group_id=group.id),
+                       request,
+                       token=new_user.token)
+        self.assertJsonError(rv, 403, 'User is not admin')
+        return
+
+    def test_add_unknown_place(self):
+        """Try to add a place that doesn't exist."""
+        group = self._group()
+
+        request = {'places': [100]}
+        group_id = group.id
+        rv = self.post('/group/{group_id}/places/'.format(group_id=group_id),
+                       request,
+                       token=self.user.token)
+        self.assertJsonOk(rv)
+        json = loads(rv.data)
+        self.assertTrue('rejected' in json)
+        self.assertFalse(json['rejected'])  # can't be rejected
+
+        self.assertTrue('not_found' in json)
+        self.assertEquals(len(json['not_found']), 1)     # the place itself
+        return
 
     def test_get_group_places(self):
         """Try to get a list of places in the group."""
@@ -498,6 +546,30 @@ class TestPlacesInGroup(LunchoTests):
         json = loads(rv.data)
         self.assertTrue('places' in json)
         self.assertEquals(place.id, json['places'][0]['id'])
+        return
+
+    def test_get_places_unknown_group(self):
+        """Try to get the places of a group that doesn't exist."""
+        rv = self.get('/group/{group_id}/places/'.format(group_id=100),
+                      token=self.user.token)
+        self.assertJsonError(rv, 404, 'Group not found')
+        return
+
+    def test_group_get_places_non_member(self):
+        """Non member tries to get the group places."""
+        new_user = self.create_user(name='newUser',
+                                    fullname='New User',
+                                    verified=True,
+                                    create_token=True)
+        group = self._group()
+        place = self._place()
+        group.places.append(place)
+        server.db.session.commit()
+
+        rv = self.get('/group/{group_id}/places/'.format(group_id=group.id),
+                      token=new_user.token)
+        self.assertJsonError(rv, 403, 'User is not member of this group')
+        return
 
     def test_delete_place(self):
         """Delete a place from a group."""
@@ -521,6 +593,25 @@ class TestPlacesInGroup(LunchoTests):
         for place in group.places:
             if place.id == place_id:
                 self.fail('Place still connected to group')
+
+        return
+
+    def test_delete_unknown_group(self):
+        """Try to delete a place of a group that doesn't exist."""
+        url = '/group/{group_id}/places/{place_id}/'.format(
+            group_id=100, place_id=100)
+        rv = self.delete(url, token=self.user.token)
+        self.assertJsonError(rv, 404, 'Group not found')
+        return
+
+    def test_delete_unknown_place(self):
+        """Try to delete a place that doesn't belong to the group."""
+        group = self._group()
+        url = '/group/{group_id}/places/{place_id}/'.format(
+            group_id=group.id, place_id=100)
+        rv = self.delete(url, token=self.user.token)
+        self.assertJsonError(rv, 404, 'Place not found')
+        return
 
 if __name__ == '__main__':
     unittest.main()
