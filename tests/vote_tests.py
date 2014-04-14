@@ -70,5 +70,28 @@ class TestVote(LunchoTests):
         self.assertJsonError(rv, 406, 'The vote must register 2 places')
         return
 
+    def test_already_voted(self):
+        """Try to vote when the user already voted."""
+        group = self._group()
+        place = self._place()
+        group.places.append(place)
+        self.user.groups.append(group)
+        server.db.session.commit()
+
+        group_id = group.id
+        token = self.user.token
+
+        request = {'choices': [place.id]}
+        rv = self.post('/vote/{group_id}/'.format(group_id=group_id),
+                       request,
+                       token=token)
+        self.assertJsonOk(rv)   # vote in the day
+
+        rv = self.post('/vote/{group_id}/'.format(group_id=group_id),
+                       request,
+                       token=token)
+        self.assertJsonError(rv, 406, 'User already voted today')
+        return
+
 if __name__ == '__main__':
     unittest.main()
