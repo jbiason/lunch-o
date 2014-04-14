@@ -86,6 +86,30 @@ class PlaceDoesntBelongToGroupException(LunchoException):
         self.json['places'] = self.places
 
 
+class PlacesVotedMoreThanOnceException(LunchoException):
+    """The indicated places were voted more than once. Only a vote
+    per place is allowed.
+
+    .. sourcecode:: http
+       HTTP/1.1 409 Conflict
+       Content-Type: text/json
+
+       { "status": "ERROR",
+         "message": "Places voted more than once",
+         "places": [<place>, <place>, ...]}
+    """
+    def __init__(self, places):
+        super(PlacesVotedMoreThanOnceException, self).__init__()
+        self.status = 409
+        self.message = 'Places voted more than once'
+        self.places = places
+        return
+
+    def _json(self):
+        super(PlacesVotedMoreThanOnceException, self)._json()
+        self.json['places'] = self.places
+
+
 # ----------------------------------------------------------------------
 #  Voting
 # ----------------------------------------------------------------------
@@ -107,33 +131,21 @@ def cast_vote(group_id):
         LOG.debug('User is not member')
         raise UserIsNotMemberException()
 
+    choices = request.as_json.get('choices')
+
     # check if the user voted today already, for any group
-    today = datetime.date.today()
-    today_vote = Vote.query.filter_by(user=request.user.username,
-                                      created_at=today).first()
-    if today_vote:
-        LOG.debug('User already voted today')
-        raise VoteAlreadyCastException()
+    _already_voted(request.user.username)
+
+    # check if the user is trying to vote in the same place twice
+    _check_duplicates(choices)
 
     # check the number of votes the user casted
-    choices = request.as_json.get('choices')
-    max_places = min(current_app.config['PLACES_IN_VOTE'],
-                     len(group.places))
-    if len(choices) != max_places:
-        LOG.debug('Max places = {max_places}, voted for {choices}',
-                  max_places=max_places, choices=len(choices))
-        raise InvalidNumberOfPlacesCastedException()
+    _check_place_count(choices, group.places)
 
     # check if the places exist and are part of the group
     # (don't vote yet, so we can stop the whole thing if there is anything
     #  wrong)
-    for place_id in request.as_json.get('choices'):
-        place = Place.query.get(place_id)
-        if not place:
-            raise ElementNotFoundException('Place')
-
-        if not place in group.places:
-            raise PlaceDoesntBelongToGroupException(place_id)
+    _check_places(choices, group.places)
 
     # finally, cast the vote
     vote = Vote(request.user, group_id)
@@ -146,3 +158,50 @@ def cast_vote(group_id):
     db.session.commit()
 
     return jsonify(status='OK')
+
+
+# ----------------------------------------------------------------------
+#  Helpers
+# ----------------------------------------------------------------------
+
+def _already_voted(username):
+    """Check if the user already voted today."""
+    today = datetime.date.today()
+    today_vote = Vote.query.filter_by(user=username,
+                                      created_at=today).first()
+    if today_vote:
+        LOG.debug('User already voted today')
+        raise VoteAlreadyCastException()
+    return
+
+
+def _check_place_count(choices, group_places):
+    """Check if the user voted in the right number of places."""
+    # maybe the group have less than PLACES_IN_VOTE choices...
+    max_places = min(current_app.config['PLACES_IN_VOTE'],
+                     len(group_places))
+    if len(choices) != max_places:
+        LOG.debug('Max places = {max_places}, voted for {choices}',
+                  max_places=max_places, choices=len(choices))
+        raise InvalidNumberOfPlacesCastedException()
+    return
+
+
+def _check_places(choices, group_places):
+    """Check if the places the user voted exist and belong to the group."""
+    for place_id in choices:
+        place = Place.query.get(place_id)
+        if not place:
+            raise ElementNotFoundException('Place')
+
+        if place not in group_places:
+            raise PlaceDoesntBelongToGroupException(place_id)
+    return
+
+
+def _check_duplicates(choices):
+    """Check if the places the user voted are listed more than once."""
+    duplicates = set([x for x in choices if choices.count(x) > 1])
+    if len(duplicates) > 0:
+        raise PlacesVotedMoreThanOnceException(duplicates)
+    return
