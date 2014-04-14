@@ -93,5 +93,36 @@ class TestVote(LunchoTests):
         self.assertJsonError(rv, 406, 'User already voted today')
         return
 
+    def test_already_vote_other_group(self):
+        """Try to vote in two different groups in the same day."""
+        group1 = self._group()
+        place1 = self._place()
+        group1.places.append(place1)
+        self.user.groups.append(group1)
+
+        group2 = self._group()
+        place2 = self._place()
+        group2.places.append(place2)
+        self.user.groups.append(group2)
+        server.db.session.commit()
+
+        group1_id = group1.id
+        group2_id = group2.id
+        place1_id = place1.id
+        place2_id = place2.id
+        token = self.user.token
+
+        request = {'choices': [place1_id]}
+        rv = self.post('/vote/{group_id}/'.format(group_id=group1_id),
+                       request,
+                       token=token)
+        self.assertJsonOk(rv)   # first vote for the day
+
+        request = {'choices': [place2_id]}
+        rv = self.post('/vote/{group_id}/'.format(group_id=group2_id),
+                       request,
+                       token=token)
+        self.assertJsonError(rv, 406, 'User already voted today')
+
 if __name__ == '__main__':
     unittest.main()
