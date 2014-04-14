@@ -17,31 +17,11 @@ from luncho.server import User
 from luncho.server import Group
 from luncho.server import Place
 
-from luncho.exceptions import LunchoException
 from luncho.exceptions import ElementNotFoundException
 from luncho.exceptions import AccountNotVerifiedException
 from luncho.exceptions import NewMaintainerDoesNotExistException
 from luncho.exceptions import UserIsNotAdminException
-
-
-# ----------------------------------------------------------------------
-#  Exceptions
-# ----------------------------------------------------------------------
-
-class UserIsNotMemberException(LunchoException):
-    """The user is not the admin of the group.
-
-    .. sourcecode:: http
-
-       HTTP/1.1 403 Forbidden
-       Content-Type: test/json
-
-       { "status": "ERROR", "message": "User is not member of this group" }
-    """
-    def __init__(self):
-        super(UserIsNotMemberException, self).__init__()
-        self.status = 403
-        self.message = 'User is not member of this group'
+from luncho.exceptions import UserIsNotMemberException
 
 
 # ----------------------------------------------------------------------

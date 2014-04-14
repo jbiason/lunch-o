@@ -20,6 +20,7 @@ from luncho.exceptions import LunchoException
 class Settings(object):
     SQLALCHEMY_DATABASE_URI = 'sqlite://./luncho.db3'
     DEBUG = True
+    PLACES_IN_VOTE = 3  # number of places the user can vote
 
 log = logging.getLogger('luncho.server')
 
@@ -125,6 +126,49 @@ class Place(db.Model):
         self.name = name
         self.owner = owner.username
 
+    def __repr__(self):
+        return 'Place {id}-{name}-{owner}'.format(id=self.id,
+                                                  name=self.name,
+                                                  owner=self.owner)
+
+
+class Vote(db.Model):
+    cast = db.Column(db.Integer, primary_key=True)
+    user = db.Column(db.String, db.ForeignKey('user.username'))
+    created_at = db.Column(db.Date, nullable=False)
+    group = db.Column(db.Integer, db.ForeignKey('group.id'))
+
+    def __init__(self, user, group):
+        self.user = user.username
+        self.created_at = datetime.date.today()
+        self.group = group
+        return
+
+    def __repr__(self):
+        values = {'cast': self.cast,
+                  'user': self.user,
+                  'created_at': self.created_at,
+                  'group': self.group}
+        return 'Vote {cast}-{user}-{created_at}-{group}'.format(**values)
+
+
+class CastedVote(db.Model):
+    vote = db.Column(db.Integer, db.ForeignKey('vote.cast'), primary_key=True)
+    order = db.Column(db.Integer, nullable=False, primary_key=True)
+    place = db.Column(db.Integer, db.ForeignKey('place.id'))
+
+    def __init__(self, vote, order, place):
+        self.vote = vote.cast
+        self.order = order
+        self.place = place
+        return
+
+    def __repr__(self):
+        return 'Cast {vote}-{order}-{place}'.format(vote=self.vote,
+                                                    order=self.order,
+                                                    place=self.place)
+
+
 # ----------------------------------------------------------------------
 #  Blueprints
 # ----------------------------------------------------------------------
@@ -134,6 +178,7 @@ from blueprints.groups import groups
 from blueprints.groups import group_users
 from blueprints.groups import group_places
 from blueprints.places import places
+from blueprints.voting import voting
 
 app.register_blueprint(token, url_prefix='/token/')
 app.register_blueprint(users, url_prefix='/user/')
@@ -141,6 +186,7 @@ app.register_blueprint(groups, url_prefix='/group/')
 app.register_blueprint(group_users, url_prefix='/group/')
 app.register_blueprint(group_places, url_prefix='/group/')
 app.register_blueprint(places, url_prefix='/place/')
+app.register_blueprint(voting, url_prefix='/vote/')
 
 
 # ----------------------------------------------------------------------

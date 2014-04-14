@@ -10,14 +10,22 @@ class LunchoException(Exception):
         self.status = 500
         self.message = 'Unknown error'
         self.extra_fields = None
+        self.json = {}
+
+    def _json(self):
+        """Fill the json property. If you need to change something, just
+        extend this function."""
+        code = self.__class__.__name__[:-9]
+        self.json = {'status': 'ERROR',     # always an error
+                     'message': self.message,
+                     'code': code}
+        if self.extra_fields:
+            self.json.update(self.extra_fields)
 
     def response(self):
         """Return a JSON representation of the exception."""
-        json = {'status': 'ERROR',
-                'message': self.message}
-        if self.extra_fields:
-            json.update(self.extra_fields)
-        response = jsonify(json)
+        self._json()        # encode the error
+        response = jsonify(self.json)
         response.status_code = self.status
         return response
 
@@ -170,3 +178,19 @@ class UserIsNotAdminException(LunchoException):
         super(UserIsNotAdminException, self).__init__()
         self.status = 403
         self.message = 'User is not admin'
+
+
+class UserIsNotMemberException(LunchoException):
+    """The user is not the admin of the group.
+
+    .. sourcecode:: http
+
+       HTTP/1.1 403 Forbidden
+       Content-Type: test/json
+
+       { "status": "ERROR", "message": "User is not member of this group" }
+    """
+    def __init__(self):
+        super(UserIsNotMemberException, self).__init__()
+        self.status = 403
+        self.message = 'User is not member of this group'
