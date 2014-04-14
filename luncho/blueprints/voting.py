@@ -61,7 +61,8 @@ class InvalidNumberOfPlacesCastedException(LunchoException):
     def __init__(self, places):
         super(InvalidNumberOfPlacesCastedException, self).__init__()
         self.status = 406
-        self.message = 'The must register {places} places'.format(places)
+        self.message = 'The vote must register {places} places'.format(
+            places=places)
 
 
 class PlaceDoesntBelongToGroupException(LunchoException):
@@ -181,9 +182,9 @@ def _check_place_count(choices, group_places):
     max_places = min(current_app.config['PLACES_IN_VOTE'],
                      len(group_places))
     if len(choices) != max_places:
-        LOG.debug('Max places = {max_places}, voted for {choices}',
-                  max_places=max_places, choices=len(choices))
-        raise InvalidNumberOfPlacesCastedException()
+        LOG.debug('Max places = {max_places}, voted for {choices}'.format(
+                  max_places=max_places, choices=len(choices)))
+        raise InvalidNumberOfPlacesCastedException(max_places)
     return
 
 

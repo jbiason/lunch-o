@@ -50,8 +50,25 @@ class TestVote(LunchoTests):
         rv = self.post('/vote/{group_id}/'.format(group_id=group.id),
                        request,
                        token=self.user.token)
-        print rv.data
         self.assertJsonOk(rv)
+        return
+
+    def test_cast_less_votes(self):
+        """Try to cast a vote with not enough places."""
+        group = self._group()
+        place1 = self._place()
+        place2 = self._place()
+        group.places.append(place1)
+        group.places.append(place2)
+        self.user.groups.append(group)
+        server.db.session.commit()
+
+        request = {'choices': [place1.id]}
+        rv = self.post('/vote/{group_id}/'.format(group_id=group.id),
+                       request,
+                       token=self.user.token)
+        self.assertJsonError(rv, 406, 'The vote must register 2 places')
+        return
 
 if __name__ == '__main__':
     unittest.main()
