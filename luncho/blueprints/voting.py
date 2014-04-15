@@ -108,7 +108,7 @@ class PlacesVotedMoreThanOnceException(LunchoException):
 
     def _json(self):
         super(PlacesVotedMoreThanOnceException, self)._json()
-        self.json['places'] = self.places
+        self.json['places'] = list(self.places)
 
 
 # ----------------------------------------------------------------------

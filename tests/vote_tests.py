@@ -141,5 +141,20 @@ class TestVote(LunchoTests):
         self.assertJsonError(rv, 404, 'Places are not part of this group')
         return
 
+    def test_vote_for_same_place_twice(self):
+        """Vote for a place more than once."""
+        group = self._group()
+        place = self._place()
+        group.places.append(place)
+        self.user.groups.append(group)
+        server.db.session.commit()
+
+        request = {'choices': [place.id, place.id]}
+        rv = self.post('/vote/{group_id}/'.format(group_id=group.id),
+                       request,
+                       token=self.user.token)
+        self.assertJsonError(rv, 409, 'Places voted more than once')
+        return
+
 if __name__ == '__main__':
     unittest.main()
