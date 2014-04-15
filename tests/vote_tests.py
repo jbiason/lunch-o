@@ -184,5 +184,19 @@ class TestVote(LunchoTests):
         self.assertJsonError(rv, 403, 'User is not member of this group')
         return
 
+    def test_vote_place_doesnt_exist(self):
+        """Vote for a place that doesnt exist."""
+        group = self._group()
+        place = self._place()
+        group.places.append(place)
+        server.db.session.commit()
+
+        request = {'choices': [place.id + 10]}
+        rv = self.post('/vote/{group_id}/'.format(group_id=group.id),
+                       request,
+                       token=self.user.token)
+        self.assertJsonError(rv, 404, 'Place not found')
+        return
+
 if __name__ == '__main__':
     unittest.main()
