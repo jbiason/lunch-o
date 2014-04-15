@@ -156,5 +156,14 @@ class TestVote(LunchoTests):
         self.assertJsonError(rv, 409, 'Places voted more than once')
         return
 
+    def test_unknown_group(self):
+        """Try to vote in a group that doesn't exist."""
+        request = {'choices': [100]}
+        rv = self.post('/vote/{group_id}/'.format(group_id=100),
+                       request,
+                       token=self.user.token)
+        self.assertJsonError(rv, 404, 'Group not found')
+        return
+
 if __name__ == '__main__':
     unittest.main()
