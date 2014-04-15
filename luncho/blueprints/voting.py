@@ -150,10 +150,14 @@ def cast_vote(group_id):
 
     # finally, cast the vote
     vote = Vote(request.user, group_id)
+    LOG.debug('User {user} casted vote {vote}'.format(user=request.user,
+                                                      vote=vote))
     db.session.add(vote)
     db.session.commit()     # so vote gets an id
     for (pos, place_id) in enumerate(request.as_json.get('choices')):
         place = CastedVote(vote, pos, place_id)
+        LOG.debug('\tVoted {place} in {pos} position'.format(place=place,
+                                                             pos=pos))
         db.session.add(place)
 
     db.session.commit()
