@@ -123,6 +123,23 @@ class TestVote(LunchoTests):
                        request,
                        token=token)
         self.assertJsonError(rv, 406, 'User already voted today')
+        return
+
+    def test_vote_place_not_in_group(self):
+        """Vote for a place that doesn't belong to the group."""
+        group = self._group()
+        place1 = self._place()
+        place2 = self._place()
+        group.places.append(place2)
+        self.user.groups.append(group)
+        server.db.session.commit()
+
+        request = {'choices': [place1.id]}
+        rv = self.post('/vote/{group_id}/'.format(group_id=group.id),
+                       request,
+                       token=self.user.token)
+        self.assertJsonError(rv, 404, 'Places are not part of this group')
+        return
 
 if __name__ == '__main__':
     unittest.main()
