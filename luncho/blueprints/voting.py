@@ -119,8 +119,36 @@ class PlacesVotedMoreThanOnceException(LunchoException):
 @ForceJSON(required=['choices'])
 @auth
 def cast_vote(group_id):
-    """Cast a vote for a group. A user can cast a vote in a single group
+    """*Authenticated request*
+
+    Cast a vote for a group. A user can cast a vote in a single group
     per day.
+
+    :header Authorization: Access token from '/token/'.
+
+    :status 200: Success
+    :status 400: Request MUST be in JSON format
+        (:pyu:class:`RequestMustBeJSONException`)
+    :status 400: Missing fields
+        (:py:class:`MissingFieldsException`)
+    :status 403: User is not member of this group
+        (:py:class:`UserIsNotMemberException`)
+    :status 404: User not found (via token)
+        (:py:class:`UserNotFoundException`)
+    :status 404: Group not found
+        (:py:class:`ElementNotFoundException`)
+    :status 404: Place not found
+        (:py:class:`ElementNotFoundException`)
+    :status 404: Place doesn't belong to the group
+        (:py:class:`PlaceDoesntBelongToGroupException`)
+    :status 406: User already voted today
+        (:py:class:`VoteAlreadyCastException`)
+    :status 406: Number of places vote doesn't match the required
+        (:py:class:`InvalidNumberOfPlacesCastedException`)
+    :status 409: Places voted more than once
+        (:py:class:`PlacesVotedMoreThanOnceException`)
+    :status 412: Authorization required
+        (:py:class:`AuthorizationRequiredException`)
     """
     # check if the group exists
     group = Group.query.get(group_id)
