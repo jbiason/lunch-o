@@ -165,5 +165,24 @@ class TestVote(LunchoTests):
         self.assertJsonError(rv, 404, 'Group not found')
         return
 
+    def test_vote_in_group_not_member(self):
+        """Try to vote for a group that the user is not a member."""
+        group = self._group()
+        place = self._place()
+        group.places.append(place)
+        server.db.session.commit()
+
+        user2 = self.create_user(name='newUser',
+                                 fullname='new user',
+                                 verified=True,
+                                 create_token=True)
+
+        request = {'choices': [place.id]}
+        rv = self.post('/vote/{group_id}/'.format(group_id=group.id),
+                       request,
+                       token=user2.token)
+        self.assertJsonError(rv, 403, 'User is not member of this group')
+        return
+
 if __name__ == '__main__':
     unittest.main()
