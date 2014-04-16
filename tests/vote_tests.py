@@ -299,6 +299,17 @@ class TestVote(LunchoTests):
         self.assertTrue(data['closed'])    # voting shouldn't be closed yet
         return
 
+    def test_get_results_not_member(self):
+        """Try to get the results of a group when the user is not a member."""
+        group = self._group()
+        user = self.create_user(name='newUser',
+                                create_token=True)
+
+        rv = self.get('/vote/{group_id}/'.format(group_id=group.id),
+                      token=user.token)
+        self.assertJsonError(rv, 403, 'User is not member of this group')
+        return
+
 
 if __name__ == '__main__':
     unittest.main()
