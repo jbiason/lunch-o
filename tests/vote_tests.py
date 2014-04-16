@@ -273,6 +273,14 @@ class TestVote(LunchoTests):
         self.assertTrue('closed' in data)
         self.assertEquals(len(data['results']), 1)
         self.assertFalse(data['closed'])    # voting shouldn't be closed yet
+        return
+
+    def test_get_results_unknown_group(self):
+        """Try to get the results of a group that doesn't exist."""
+        rv = self.get('/vote/{group_id}/'.format(group_id=100),
+                      token=self.user.token)
+        self.assertJsonError(rv, 404, 'Group not found')
+        return
 
 
 if __name__ == '__main__':
