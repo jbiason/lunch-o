@@ -2,6 +2,7 @@
 # -*- encoding: utf-8 -*-
 
 import unittest
+import json
 
 from luncho import server
 
@@ -196,6 +197,50 @@ class TestVote(LunchoTests):
                        request,
                        token=self.user.token)
         self.assertJsonError(rv, 404, 'Place not found')
+        return
+
+    def test_no_results(self):
+        """Get the results when no votes were cast."""
+        group = self._group()
+        place = self._place()
+        group.places.append(place)
+        server.db.session.commit()
+
+        rv = self.get('/vote/{group_id}/'.format(group_id=group.id),
+                      token=self.user.token)
+        self.assertJsonOk(rv)
+        data = json.loads(rv.data)
+        self.assertTrue('results' in data)
+        self.assertFalse(data['results'])   # the list is empty
+        self.assertTrue('closed' in data)
+        self.assertFalse(data['closed'])    # now it is a boolean
+        return
+
+    def test_single_vote(self):
+        """Test voting in a group with a single user."""
+        group = self._group()
+        place = self._place()
+        group.places.append(place)
+        self.user.groups.append(group)
+        server.db.session.commit()
+
+        group_id = group.id
+        token = self.user.token
+
+        request = {'choices': [place.id]}
+        self.post('/vote/{group_id}/'.format(group_id=group_id),
+                  request,
+                  token=token)    # we expect everything will go fine
+
+        rv = self.get('/vote/{group_id}/'.format(group_id=group_id),
+                      token=token)
+        self.assertJsonOk(rv)
+
+        data = json.loads(rv.data)
+        self.assertTrue('results' in data)
+        self.assertTrue('closed' in data)
+        self.assertEqual(len(data['results']), 1)
+        self.assertTrue(data['closed'])
         return
 
 if __name__ == '__main__':

@@ -5,6 +5,7 @@
 
 import datetime
 import logging
+import operator
 
 from flask import Blueprint
 from flask import jsonify
@@ -192,6 +193,96 @@ def cast_vote(group_id):
 
     return jsonify(status='OK')
 
+
+@voting.route('<int:group_id>/', methods=['GET'])
+@auth
+def get_vote(group_id):
+    """*Authenticated request*
+
+    Return the current voting status for the group.
+
+    :header Authorization: Access token from '/token/'.
+
+    :status 200: Success
+
+        .. sourcecode:: http
+
+           HTTP/1.1 200 OK
+           Content-type: text/json
+
+           { "status": "OK",
+             "closed": <True if all members voted>,
+             "results": [ {"id": <place id>,
+                           "name": "<place name>",
+                           "points": <points> },
+                          {"id": <place id>,
+                           "name": "<place name>",
+                           "points": <points> },
+                          ...  ] }
+    :status 403: User is not member of this group
+        (:py:class:`UserIsNotMemberException`)
+    :status 404: User not found (via token)
+        (:py:class:`UserNotFoundException`)
+    :status 404: Group not found
+        (:py:class:`ElementNotFoundException`)
+    :status 412: Authorization required
+        (:py:class:`AuthorizationRequiredException`)
+    """
+    # check if the group exists
+    group = Group.query.get(group_id)
+    if not group:
+        raise ElementNotFoundException('Group')
+
+    # check if the user belongs to the group
+    if request.user not in group.users:
+        LOG.debug('User is not member')
+        raise UserIsNotMemberException()
+
+    # calculate the decrementating value, based on the number of places
+    max_places = min(current_app.config['PLACES_IN_VOTE'],
+                     len(group.places))
+    decrement = round(1.0 / float(max_places), 1)
+    LOG.debug('For {places}, the decrement factor is {decrement}'.format(
+        places=max_places, decrement=decrement))
+
+    # get the votes for today
+    today = datetime.date.today()
+    group_votes = Vote.query.filter_by(group=group.id,
+                                       created_at=today)
+    points = {}
+    votes = 0
+    for vote in group_votes:
+        votes += 1
+        # get the casted votes
+        vote_value = 1.0
+        for cast in CastedVote.query.filter_by(vote=vote.cast):
+            if not cast.place in points:
+                points[cast.place] = 0.0;
+            points[cast.place] += vote_value
+            vote_value -= decrement
+
+    LOG.debug('Unsorted results: {results}'.format(results=points))
+
+    # check if the voting is closed. for that, the number of votes must be
+    # equal to the number of users in the group
+    closed = False
+    if votes == len(group.users):
+        closed = True
+
+    # sort the results from most voted to least voted
+    # (turn the dictionary into a list with place,points values, then sort
+    #  them by points)
+    result = []
+    for (place_id, points) in sorted(points.items(),
+                                     key=operator.itemgetter(1)):
+        place = Place.query.get(place_id)
+        result.append({'id': place.id,
+                       'name': place.name,
+                       'points': points})
+
+    return jsonify(status='OK',
+                   closed=closed,
+                   results=result)
 
 # ----------------------------------------------------------------------
 #  Helpers
