@@ -243,5 +243,37 @@ class TestVote(LunchoTests):
         self.assertTrue(data['closed'])
         return
 
+    def test_incomplete_vote(self):
+        """Test voting not closed due not all members voted."""
+        group = self._group()
+        place = self._place()
+        group.places.append(place)
+        self.user.groups.append(group)
+
+        user1 = self.create_user(name='newUser',
+                                 fullname='New User',
+                                 verified=True)
+        user1.groups.append(group)
+        server.db.session.commit()
+
+        group_id = group.id
+        token = self.user.token
+
+        request = {'choices': [place.id]}
+        self.post('/vote/{group_id}/'.format(group_id=group_id),
+                  request,
+                  token=token)
+
+        rv = self.get('/vote/{group_id}/'.format(group_id=group_id),
+                      token=token)
+        self.assertJsonOk(rv)
+
+        data = json.loads(rv.data)
+        self.assertTrue('results' in data)
+        self.assertTrue('closed' in data)
+        self.assertEquals(len(data['results']), 1)
+        self.assertFalse(data['closed'])    # voting shouldn't be closed yet
+
+
 if __name__ == '__main__':
     unittest.main()
