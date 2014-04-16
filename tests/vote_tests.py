@@ -282,6 +282,23 @@ class TestVote(LunchoTests):
         self.assertJsonError(rv, 404, 'Group not found')
         return
 
+    def test_get_results_no_places(self):
+        """Try to get the results the group have no places."""
+        group = self._group()
+        self.user.groups.append(group)
+        server.db.session.commit()
+
+        rv = self.get('/vote/{group_id}/'.format(group_id=group.id),
+                      token=self.user.token)
+        self.assertJsonOk(rv)
+
+        data = json.loads(rv.data)
+        self.assertTrue('results' in data)
+        self.assertTrue('closed' in data)
+        self.assertEquals(len(data['results']), 0)
+        self.assertTrue(data['closed'])    # voting shouldn't be closed yet
+        return
+
 
 if __name__ == '__main__':
     unittest.main()

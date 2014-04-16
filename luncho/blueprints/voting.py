@@ -241,6 +241,13 @@ def get_vote(group_id):
     # calculate the decrementating value, based on the number of places
     max_places = min(current_app.config['PLACES_IN_VOTE'],
                      len(group.places))
+    if max_places == 0:
+        # this means the group have no places at all, so the result will
+        # *always* be an empty list, closed.
+        return jsonify(status='OK',
+                       results=[],
+                       closed=True)
+
     decrement = round(1.0 / float(max_places), 1)
     LOG.debug('For {places}, the decrement factor is {decrement}'.format(
         places=max_places, decrement=decrement))
@@ -256,8 +263,8 @@ def get_vote(group_id):
         # get the casted votes
         vote_value = 1.0
         for cast in CastedVote.query.filter_by(vote=vote.cast):
-            if not cast.place in points:
-                points[cast.place] = 0.0;
+            if cast.place not in points:
+                points[cast.place] = 0.0
             points[cast.place] += vote_value
             vote_value -= decrement
 
@@ -283,6 +290,7 @@ def get_vote(group_id):
     return jsonify(status='OK',
                    closed=closed,
                    results=result)
+
 
 # ----------------------------------------------------------------------
 #  Helpers
