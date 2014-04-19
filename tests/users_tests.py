@@ -18,7 +18,7 @@ class TestUsers(LunchoTests):
         request = {'username': 'username',
                    'full_name': 'full name',
                    'password': 'hash'}
-        rv = self.put('/user/', request)
+        rv = self.post('/user/', request)
         self.assertJsonOk(rv)
 
         # db check
@@ -32,7 +32,7 @@ class TestUsers(LunchoTests):
         request = {'username': 'username',
                    'full_name': 'full name',
                    'password': 'hash'}
-        rv = self.put('/user/', data=request)
+        rv = self.post('/user/', data=request)
         self.assertJsonError(rv, 409, 'Username already exists')
 
     def test_no_json(self):
@@ -43,7 +43,7 @@ class TestUsers(LunchoTests):
     def test_missing_fields(self):
         """Send a request with missing fields."""
         request = {'password': 'hash'}
-        rv = self.put('/user/', request)
+        rv = self.post('/user/', request)
         self.assertJsonError(rv, 400, 'Missing fields', fields=['username',
                                                                 'full_name'])
 
@@ -66,9 +66,9 @@ class TestExistingUsers(LunchoTests):
         """Update user details."""
         request = {'full_name': 'New User Name',
                    'password': 'newhash'}
-        rv = self.post('/user/',
-                       request,
-                       self.user.token)
+        rv = self.put('/user/',
+                      request,
+                      self.user.token)
 
         self.assertJsonOk(rv)
 
@@ -81,9 +81,9 @@ class TestExistingUsers(LunchoTests):
         """Send a request with an unexisting token."""
         request = {'full_name': 'New User Name',
                    'password': 'newhash'}
-        rv = self.post('/user/',
-                       request,
-                       'no-token')
+        rv = self.put('/user/',
+                      request,
+                      'no-token')
 
         self.assertJsonError(rv, 404, 'User not found (via token)')
 
@@ -96,9 +96,9 @@ class TestExistingUsers(LunchoTests):
 
         request = {'full_name': 'New User Name',
                    'password': 'newhash'}
-        rv = self.post('/user/',
-                       request,
-                       self.user.token)
+        rv = self.put('/user/',
+                      request,
+                      self.user.token)
 
         self.assertJsonError(rv, 400, 'Invalid token')
 

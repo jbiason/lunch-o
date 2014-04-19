@@ -289,9 +289,9 @@ class TestUsersInGroup(LunchoTests):
         request = {'usernames': [new_user.username]}
 
         url = '/group/{group_id}/users/'.format(group_id=self.group.id)
-        rv = self.put(url,
-                      request,
-                      token=self.user.token)
+        rv = self.post(url,
+                       request,
+                       token=self.user.token)
         self.assertJsonOk(rv)
         return
 
@@ -307,9 +307,9 @@ class TestUsersInGroup(LunchoTests):
         request = {'usernames': [new_user.username]}
 
         url = '/group/{group_id}/users/'.format(group_id=self.group.id)
-        rv = self.put(url,
-                      request,
-                      token=new_user.token)
+        rv = self.post(url,
+                       request,
+                       token=new_user.token)
         self.assertJsonError(rv, 403, 'User is not admin')
         return
 
@@ -317,9 +317,9 @@ class TestUsersInGroup(LunchoTests):
         """Try to add an unknown user to the group."""
         request = {'usernames': ['unknown']}
         url = '/group/{group_id}/users/'.format(group_id=self.group.id)
-        rv = self.put(url,
-                      request,
-                      token=self.user.token)
+        rv = self.post(url,
+                       request,
+                       token=self.user.token)
 
         # not finding users still returns a 200, but with the users in the
         # "not_found" field
@@ -334,9 +334,9 @@ class TestUsersInGroup(LunchoTests):
         # the usernames are worthless, group not found should kick first
         request = {'usernames': ['unkonwn']}
         group_id = self.group.id + 10
-        rv = self.put('/group/{group_id}/users/'.format(group_id=group_id),
-                      request,
-                      token=self.user.token)
+        rv = self.post('/group/{group_id}/users/'.format(group_id=group_id),
+                       request,
+                       token=self.user.token)
         self.assertJsonError(rv, 404, 'Group not found')
         return
 
