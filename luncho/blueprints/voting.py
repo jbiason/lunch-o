@@ -129,7 +129,7 @@ def cast_vote(group_id):
 
     :status 200: Success
     :status 400: Request MUST be in JSON format
-        (:pyu:class:`RequestMustBeJSONException`)
+        (:py:class:`RequestMustBeJSONException`)
     :status 400: Missing fields
         (:py:class:`MissingFieldsException`)
     :status 403: User is not member of this group

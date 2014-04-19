@@ -66,6 +66,16 @@ Redirects
 All URLs must end with "/"; if you forget to add them in the URL, you'll
 receive a redirect to the path with "/".
 
+Flow
+=====
+
+Here are some expected typical request flows:
+
+.. toctree::
+   :maxdepth: 3
+
+   flow/voting
+
 API
 ====
 
@@ -75,3 +85,4 @@ API
    users_and_tokens
    places
    groups
+   voting

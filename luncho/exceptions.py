@@ -70,7 +70,7 @@ class InvalidTokenException(LunchoException):
 
     ..sourcecode:: http
 
-       HTTP/1.1 400 Bad REquest
+       HTTP/1.1 400 Bad Request
        Content-Type: text/json
 
        { "status": "ERROR", "message": "Invalid token" }
