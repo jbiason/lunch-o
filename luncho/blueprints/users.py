@@ -40,7 +40,7 @@ class UsernameAlreadyExistsException(LunchoException):
         self.message = 'Username already exists'
 
 
-@users.route('', methods=['PUT'])
+@users.route('', methods=['POST'])
 @ForceJSON(required=['username', 'full_name', 'password'])
 def create_user():
     """Create a new user.
@@ -82,7 +82,7 @@ def create_user():
     return jsonify(status='OK')
 
 
-@users.route('', methods=['POST'])
+@users.route('', methods=['PUT'])
 @ForceJSON()
 @auth
 def update_user():

@@ -223,7 +223,7 @@ def delete_group(group_id):
 group_users = Blueprint('group_users', __name__)
 
 
-@group_users.route('<int:group_id>/users/', methods=['PUT'])
+@group_users.route('<int:group_id>/users/', methods=['POST'])
 @ForceJSON(required=['usernames'])
 @auth
 def add_users_to_group(group_id):
