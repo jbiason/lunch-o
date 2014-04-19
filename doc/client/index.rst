@@ -23,7 +23,7 @@ The response will always be:
 .. sourcecode:: http
 
    HTTP/1.1 400 Bad Request
-   Content-Type: text/json
+   Content-Type: application/json
 
    { "status": "ERROR", "message": "Request MUST be in JSON format" }
 
@@ -33,7 +33,7 @@ If instead you do a proper JSON request with:
 
    POST /randomendpoint
    Host: example.com
-   Content-type: text/json
+   Content-type: application/json
 
    { "field1": "value", "field2": "value" }
 

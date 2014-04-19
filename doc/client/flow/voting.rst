@@ -19,7 +19,7 @@ A typical voting/check results flow would be:
    .. sourcecode:: http
 
       HTTP/1.1 404 Not Found
-      Content-Type: text/json
+      Content-Type: application/json
 
       { "status": "ERROR",
         "code": "UserNotFound",

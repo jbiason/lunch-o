@@ -24,7 +24,7 @@ class UserDoesNotExistException(LunchoException):
     .. sourcecode:: http
 
        HTTP/1.1 404 Not found
-       Content-Type: text/json
+       Content-Type: application/json
 
        { "status": "ERROR", "message": "User does not exist" }
     """
@@ -40,7 +40,7 @@ class InvalidPasswordException(LunchoException):
     .. sourcecode:: http
 
        HTTP/1.1 401 Unauthorized
-       Content-Type: text/json
+       Content-Type: application/json
 
        { "status": "ERROR", "message": "Invalid password" }
     """
@@ -74,7 +74,7 @@ def get_token():
     .. sourcecode:: http
 
        HTTP/1.1 200 OK
-       Content-Type: text/json
+       Content-Type: application/json
 
        { "status": "OK", "token": "access_token" }
 

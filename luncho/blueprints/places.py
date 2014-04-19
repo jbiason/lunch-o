@@ -77,7 +77,7 @@ def get_places():
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Content-Type: text/json
+            Content-Type: application/json
 
             { "status": "OK", "places": [ { "id": "<placeId>",
                                             "name": "<place name>",

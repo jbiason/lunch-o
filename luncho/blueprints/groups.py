@@ -47,7 +47,7 @@ def user_groups():
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Content-Type: text/json
+            Content-Type: application/json
 
             { "status": "OK", "groups": [ { "id": "<group id>" ,
                                             "name": "<group name>",
@@ -93,7 +93,7 @@ def create_group():
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Content-Type: text/json
+            Content-Type: application/json
 
             { "status": "OK", "id": <new group id> }
 
@@ -248,7 +248,7 @@ def add_users_to_group(group_id):
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Content-Type: text/json
+            Content-Type: application/json
 
             { "status": "OK", "not_found": [<user>, <user>, ...] }
 
@@ -301,7 +301,7 @@ def list_group_members(group_id):
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Content-Type: text/json
+            Content-Type: application/json
 
             { "status": "OK", "users": [ { "username": "<username>",
                                             "full_name": "<full name>"},
@@ -356,7 +356,7 @@ def get_group_places(group_id):
         .. sourcecode:: http
 
             HTTP/1.1 200 OK
-            Content-Type: text/json
+            Content-Type: application/json
 
             { "status": "OK", "places": [ { "id": "<place id>",
                                             "name": "<place name>"},
@@ -408,7 +408,7 @@ def group_add_places(group_id):
         .. sourcecode:: http
 
            HTTP/1.1 200 OK
-           Content-Type: text/json
+           Content-Type: application/json
 
            { "status": "OK",
              "rejected": [<place>, <place>, ...],

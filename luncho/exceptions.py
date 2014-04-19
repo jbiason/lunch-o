@@ -36,7 +36,7 @@ class RequestMustBeJSONException(LunchoException):
     ..sourcecode:: http
 
        HTTP/1.1 400 Bad Request
-       Content-Type: text/json
+       Content-Type: application/json
 
        { "status": "ERROR", "message": "Request MUST be in JSON format" }
     """
@@ -52,7 +52,7 @@ class MissingFieldsException(LunchoException):
     ..sourcecode:: http
 
        HTTP/1.1 400 Bad Request
-       Content-Type: text/json
+       Content-Type: application/json
 
        { "status": "ERROR",
          "message": "Missing fields",
@@ -71,7 +71,7 @@ class InvalidTokenException(LunchoException):
     ..sourcecode:: http
 
        HTTP/1.1 400 Bad Request
-       Content-Type: text/json
+       Content-Type: application/json
 
        { "status": "ERROR", "message": "Invalid token" }
     """
@@ -87,7 +87,7 @@ class UserNotFoundException(LunchoException):
     ..sourccode:: http
 
        HTTP/1.1 404 Not Found
-       Content-Type: text/json
+       Content-Type: application/json
 
 
        { "status": "ERROR", "message": "User not found (via token)" }
@@ -104,7 +104,7 @@ class ElementNotFoundException(LunchoException):
     ..sourcecode:: http
 
        HTTP/1.1 404 Not Found
-       Content-Type: text/json
+       Content-Type: application/json
 
        { "status": "ERROR", "message": "{element} not found" }
 
@@ -122,7 +122,7 @@ class AuthorizationRequiredException(LunchoException):
     ..sourcecode:: http
 
        HTTP/1.1 401 Unauthorized
-       Content-Type: text/json
+       Content-Type: application/json
 
        { "status": "ERROR": "message": "Request requires authentication" }
     """
@@ -138,7 +138,7 @@ class AccountNotVerifiedException(LunchoException):
     .. sourcecode:: http
 
        HTTP/1.1 412 Precondition Failed
-       Content-Type: test/json
+       Content-Type: application/json
 
        { "status": "ERROR", "message": "Account not verified" }
     """
@@ -154,7 +154,7 @@ class NewMaintainerDoesNotExistException(LunchoException):
     .. sourcecode:: http
 
        HTTP/1.1 404 Not found
-       Content-Type: test/json
+       Content-Type: application/json
 
        { "status": "ERROR", "message": "New admin not found" }
     """
@@ -170,7 +170,7 @@ class UserIsNotAdminException(LunchoException):
     .. sourcecode:: http
 
        HTTP/1.1 403 Forbidden
-       Content-Type: test/json
+       Content-Type: application/json
 
        { "status": "ERROR", "message": "User is not admin" }
     """
@@ -186,7 +186,7 @@ class UserIsNotMemberException(LunchoException):
     .. sourcecode:: http
 
        HTTP/1.1 403 Forbidden
-       Content-Type: test/json
+       Content-Type: application/json
 
        { "status": "ERROR", "message": "User is not member of this group" }
     """

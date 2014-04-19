@@ -39,7 +39,7 @@ class VoteAlreadyCastException(LunchoException):
 
     .. sourcecode:: http
        HTTP/1.1 406 Not Acceptable
-       Content-Type: text/json
+       Content-Type: application/json
 
        { "status": "ERROR", "message": "User already voted today" }
     """
@@ -54,7 +54,7 @@ class InvalidNumberOfPlacesCastedException(LunchoException):
 
     .. sourcecode:: http
        HTTP/1.1 406 Not Acceptable
-       Content-Type: text/json
+       Content-Type: application/json
 
        { "status": "ERROR",
          "message": "The vote must register {places} places" }
@@ -71,7 +71,7 @@ class PlaceDoesntBelongToGroupException(LunchoException):
 
     .. sourcecode:: http
        http/1.1 404 Not Found
-       Content-Type: text/json
+       Content-Type: application/json
 
        { "status": "ERROR",
          "message": "Places are not part of this group",
@@ -94,7 +94,7 @@ class PlacesVotedMoreThanOnceException(LunchoException):
 
     .. sourcecode:: http
        HTTP/1.1 409 Conflict
-       Content-Type: text/json
+       Content-Type: application/json
 
        { "status": "ERROR",
          "message": "Places voted more than once",
@@ -208,7 +208,7 @@ def get_vote(group_id):
         .. sourcecode:: http
 
            HTTP/1.1 200 OK
-           Content-type: text/json
+           Content-type: application/json
 
            { "status": "OK",
              "closed": <True if all members voted>,

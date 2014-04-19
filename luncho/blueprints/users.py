@@ -30,7 +30,7 @@ class UsernameAlreadyExistsException(LunchoException):
     ..sourcecode:: http
 
        HTTP/1.1 409 Conflict
-       Content-Type: text/json
+       Content-Type: application/json
 
        { "status": "ERROR", "message": "Username already exists" }
     """
@@ -58,7 +58,7 @@ def create_user():
     .. sourcecode:: http
 
        HTTP/1.1 200 OK
-       Content-Type: text/json
+       Content-Type: application/json
 
        { "status": "OK" }
 
@@ -109,7 +109,7 @@ def update_user():
     .. sourcecode:: http
 
        HTTP/1.1 200 OK
-       Content-Type: text/json
+       Content-Type: application/json
 
        { "status": "OK" }
 
@@ -148,7 +148,7 @@ def delete_user():
     .. sourcecode:: http
 
        HTTP/1.1 200 OK
-       Content-Type: text/json
+       Content-Type: application/json
 
        { "status": "OK" }
 
