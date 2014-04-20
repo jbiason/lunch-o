@@ -40,6 +40,22 @@ class UsernameAlreadyExistsException(LunchoException):
         self.message = 'Username already exists'
 
 
+class InvalidUsernameException(LunchoException):
+    """The chosen username has invalid characters.
+
+    .. sourcecode:: http
+
+       HTTP/1.1 406 Not Acceptable
+       Content-Type: application/json
+
+       { "status": "ERROR": "message": "Invalid characters in username" }
+    """
+    def __init__(self):
+        super(InvalidUsernameException, self).__init__()
+        self.status = 406
+        self.message = 'Invalid characters in username'
+
+
 @users.route('', methods=['POST'])
 @ForceJSON(required=['username', 'full_name', 'password'])
 def create_user():
@@ -63,10 +79,16 @@ def create_user():
        { "status": "OK" }
 
     :statuscode 200: Success
+    :statuscode 406: Invalid characters in username
+        (:py:class:`InvalidUsernameException`)
     :statuscode 409: Username already exists
         (:py:class:`UsernameAlreadyExistsException`)
     """
     json = request.get_json(force=True)
+    invalid_characters = ' !@#$%^&*()|[]{}/\\\'"`~"'
+    for char in invalid_characters:
+        if char in json['username']:
+            raise InvalidUsernameException()
 
     try:
         new_user = User(username=json['username'],

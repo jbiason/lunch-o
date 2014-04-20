@@ -47,6 +47,14 @@ class TestUsers(LunchoTests):
         self.assertJsonError(rv, 400, 'Missing fields', fields=['username',
                                                                 'full_name'])
 
+    def test_invalid_characters(self):
+        """Create a user with invalid characters."""
+        request = {'username': "user'",
+                   'full_name': 'invalid',
+                   'password': 'hash'}
+        rv = self.post('/user/', data=request)
+        self.assertJsonError(rv, 406, 'Invalid characters in username')
+
 
 class TestExistingUsers(LunchoTests):
     """Tests for existing users."""
