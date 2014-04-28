@@ -6,8 +6,6 @@ import json
 import hmac
 import datetime
 
-from operator import itemgetter
-
 from flask import Flask
 from flask import jsonify
 
@@ -212,12 +210,16 @@ def show_api():
         summary = ' '.join(line.strip() for line in summary.split('\n'))
 
         for method in rule.methods:
+            if method not in ['GET', 'POST', 'PUT', 'DELETE']:
+                # other methods are not required
+                continue
+
             routes.append([
-                rule.methods.upper() + ' ' + path,
+                method.upper() + ' ' + path,
                 summary
             ])
 
-    routes.sort(key=itemgetter(0))
+    routes.sort(key=lambda url: url[0].split()[1])
     return jsonify(status='OK', api=routes)
 
 

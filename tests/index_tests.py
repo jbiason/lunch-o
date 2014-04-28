@@ -22,7 +22,7 @@ class TestIndex(LunchoTests):
         self.assertJsonOk(rv)
 
         response = json.loads(rv.data)
-        self.assertEqual(response['api'][0][0], '/')
+        self.assertEqual(response['api'][0][0], 'GET /')
 
 if __name__ == '__main__':
     unittest.main()
