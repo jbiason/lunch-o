@@ -8,7 +8,6 @@ import datetime
 
 from flask import Flask
 from flask import jsonify
-from flask import current_app
 
 from flask.json import JSONEncoder
 
@@ -42,7 +41,7 @@ log = logging.getLogger('luncho.server')
 # ----------------------------------------------------------------------
 app = Flask(__name__)
 app.config.from_object(Settings)
-app.config.from_envvar('LUCNHO_CONFIG', True)
+app.config.from_envvar('LUNCHO_CONFIG', True)
 app.json_encoder = DateEncoder
 
 # ----------------------------------------------------------------------
@@ -237,8 +236,7 @@ def show_api():
 
     routes.sort(key=lambda url: url[0].split()[1])
     return jsonify(status='OK',
-                   api=routes,
-                   config=current_app.config)
+                   api=routes)
 
 
 # ----------------------------------------------------------------------
