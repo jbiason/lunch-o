@@ -205,17 +205,17 @@ def show_api():
             continue
 
         path = str(rule)
-        # methods = rule.methods
         doc = app.view_functions[endpoint].__doc__
 
         # make the doc a little more... pretty
         summary = doc.split('\n\n')[0]
         summary = ' '.join(line.strip() for line in summary.split('\n'))
 
-        routes.append([
-            path,
-            summary
-        ])
+        for method in rule.methods:
+            routes.append([
+                rule.methods.upper() + ' ' + path,
+                summary
+            ])
 
     routes.sort(key=itemgetter(0))
     return jsonify(status='OK', api=routes)
