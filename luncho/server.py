@@ -8,8 +8,23 @@ import datetime
 
 from flask import Flask
 from flask import jsonify
+from flask import current_app
+
+from flask.json import JSONEncoder
 
 from luncho.exceptions import LunchoException
+
+
+# ----------------------------------------------------------------------
+#  JSON encoding with date support
+# ----------------------------------------------------------------------
+class DateEncoder(JSONEncoder):
+    def default(self, obj):
+        if hasattr(obj, 'isoformat'):
+            return obj.isoformat()
+        else:
+            return str(obj)
+        return json.JSONEncoder.default(self, obj)
 
 
 # ----------------------------------------------------------------------
@@ -28,6 +43,7 @@ log = logging.getLogger('luncho.server')
 app = Flask(__name__)
 app.config.from_object(Settings)
 app.config.from_envvar('LUCNHO_CONFIG', True)
+app.json_encoder = DateEncoder
 
 # ----------------------------------------------------------------------
 #  Database
@@ -220,7 +236,9 @@ def show_api():
             ])
 
     routes.sort(key=lambda url: url[0].split()[1])
-    return jsonify(status='OK', api=routes)
+    return jsonify(status='OK',
+                   api=routes,
+                   config=current_app.config)
 
 
 # ----------------------------------------------------------------------
